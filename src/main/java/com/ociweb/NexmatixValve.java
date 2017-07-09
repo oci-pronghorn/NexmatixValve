@@ -15,8 +15,8 @@ public class NexmatixValve implements FogApp
         builder.useSerial(Baud.B_____9600); //optional device can be set as the second argument
         mqttConfig = builder.useMQTT("127.0.0.1", 1883, "NexmatixValve")
                 .cleanSession(true)
-                .transmissionOoS(2)
-                .subscriptionQoS(2)
+                .transmissionOoS(1)
+                .subscriptionQoS(1)
                 .keepAliveSeconds(10);
         builder.limitThreads();
     }
@@ -26,18 +26,17 @@ public class NexmatixValve implements FogApp
         // Register the serial listener that chunks the messages
         runtime.registerListener(new UARTMessageWindowBehavior(runtime, "uart", 128));
         // Register the listener that publishes per field in the message
-        runtime.registerListener(new FieldPublisherBehavior(runtime, "value", 128)).addSubscription("uart");
+        final FieldPublisherBehavior fields = new FieldPublisherBehavior(runtime, "value", 128);
+        runtime.registerListener(fields).addSubscription("uart");
         // For every station and published field
-        for (int station = 0; station < 10; station++) {
-            for (int valueTopic = 1; valueTopic < MessageScheme.topics.length; valueTopic++) {
+        for (int stationId = 0; stationId < 10; stationId++) {
+            for (int valueId = 1; valueId < MessageScheme.topics.length; valueId++) {
                 // Create a filter for that field
-                runtime.registerListener(new FieldFilterBehavior(runtime, "filtered", valueTopic)).addSubscription(
-                        String.format("value/%d/%d", station, valueTopic));
+                final FieldFilterBehavior filter = new FieldFilterBehavior(runtime, "filtered", stationId, valueId);
+                runtime.registerListener(filter).addSubscription(fields.publishTopics[stationId][valueId]);
                 // Broadcast the value to MQTT transforming the topic
-                runtime.transmissionBridge(
-                        String.format("filtered/%d/%d", station, valueTopic),
-                        String.format("%s/%d/%s", manifoldTopic, station, MessageScheme.topics[valueTopic]),
-                                mqttConfig); //optional 2 topics, optional transform lambda
+                final String mqttTopic = String.format("%s/%d/%s", manifoldTopic, stationId, MessageScheme.topics[valueId]);
+                runtime.transmissionBridge(filter.publishTopic, mqttTopic, mqttConfig); //optional 2 topics, optional transform lambda
             }
         }
     }

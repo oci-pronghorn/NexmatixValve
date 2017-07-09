@@ -19,7 +19,7 @@ public class MessageScheme {
             "lf%i"
     };
 
-    static String[] topics = new String[] {
+    public static String[] topics = new String[] {
             "StationId",
             "SerialNumber",
             "ProductNumber",
