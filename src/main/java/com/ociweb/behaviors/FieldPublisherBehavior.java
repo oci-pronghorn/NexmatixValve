@@ -8,6 +8,8 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.util.TrieParser;
 import com.ociweb.pronghorn.util.TrieParserReader;
 
+import static com.ociweb.MessageScheme.timestampId;
+
 public class FieldPublisherBehavior implements PubSubListener {
     private final FogCommandChannel channel;
     public final String[][] publishTopics;
@@ -55,10 +57,10 @@ public class FieldPublisherBehavior implements PubSubListener {
             return;
         }
         channel.publishTopic(publishTopics[stationId][valueId], pubSubWriter -> {
-            pubSubWriter.writeLong(timeStamp);
+            pubSubWriter.writeLong(timestampId, timeStamp);
             if (fieldType == 0) {
                 int value = (int)TrieParserReader.capturedLongField(reader, valueId);
-                pubSubWriter.writeInt(value);
+                pubSubWriter.writeInt(valueId, value);
             }
             else if (fieldType == 1) {
                 TrieParserReader.capturedFieldBytesAsUTF8(reader, valueId, pubSubWriter);

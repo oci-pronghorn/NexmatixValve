@@ -6,9 +6,12 @@ import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 
+import static com.ociweb.MessageScheme.timestampId;
+
 public class FieldFilterBehavior implements PubSubListener {
     private final FogCommandChannel channel;
     private final int fieldType;
+    private final int valueId;
     public final String publishTopic;
 
     private int intCache = Integer.MAX_VALUE;
@@ -17,6 +20,7 @@ public class FieldFilterBehavior implements PubSubListener {
     public FieldFilterBehavior(FogRuntime runtime, String topic, int stationId, int valueId) {
         this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
         this.fieldType = MessageScheme.types[valueId];
+        this.valueId = valueId;
         this.publishTopic = String.format("%s/%d/%d", topic, stationId, valueId);
     }
 
@@ -40,9 +44,9 @@ public class FieldFilterBehavior implements PubSubListener {
         }
         if (publish) {
             channel.publishTopic(publishTopic, pubSubWriter -> {
-                pubSubWriter.writeLong(timeStamp);
+                pubSubWriter.writeLong(timestampId, timeStamp);
                 if (fieldType == 0) {
-                    pubSubWriter.write(intCache);
+                    pubSubWriter.writeInt(valueId, intCache);
                 }
                 else {
                     pubSubWriter.writeUTF(stringCache);

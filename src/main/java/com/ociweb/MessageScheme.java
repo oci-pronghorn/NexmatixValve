@@ -2,6 +2,8 @@ package com.ociweb;
 import com.ociweb.pronghorn.util.TrieParser;
 
 public class MessageScheme {
+    public static final int timestampId = 256;
+
     private static String[] patterns = new String[] {
             "st%u",
             "sn%i",

@@ -5,6 +5,8 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.SerialListener;
 import com.ociweb.iot.maker.SerialReader;
 
+import static com.ociweb.MessageScheme.timestampId;
+
 public class UARTMessageWindowBehavior implements SerialListener {
     private final String topic;
     private final FogCommandChannel channel;
@@ -59,7 +61,7 @@ public class UARTMessageWindowBehavior implements SerialListener {
         final int finalEnd = end - 1;
         final int msgLen = finalEnd - finalBegin;
         channel.publishTopic(topic, pubSubWriter -> {
-            pubSubWriter.writeLong(timeStamp);
+            pubSubWriter.writeLong(timestampId, timeStamp);
             pubSubWriter.writeShort(msgLen);
             pubSubWriter.write(buffer, finalBegin, msgLen);
         });
