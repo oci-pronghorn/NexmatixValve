@@ -5,7 +5,7 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.SerialListener;
 import com.ociweb.iot.maker.SerialReader;
 
-import static com.ociweb.MessageScheme.timestampId;
+import static com.ociweb.MessageScheme.messageSize;
 
 public class UARTMessageWindowBehavior implements SerialListener {
     private final String topic;
@@ -19,10 +19,10 @@ public class UARTMessageWindowBehavior implements SerialListener {
         return (int)Math.pow(2, p);
     }
 
-    public UARTMessageWindowBehavior(FogRuntime runtime, String topic, int maxMessageLen) {
+    public UARTMessageWindowBehavior(FogRuntime runtime, String topic) {
         this.topic = topic;
         // Make certain we can fit at least one complete message
-        int bufferSize = inTheKeyOf2(maxMessageLen * 2);
+        int bufferSize = inTheKeyOf2(messageSize * 2);
         this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING, bufferSize);
         this.buffer = new byte[bufferSize];
     }
@@ -30,7 +30,7 @@ public class UARTMessageWindowBehavior implements SerialListener {
     @Override
     public int message(SerialReader serialReader) {
         // Read what we can
-        final int len = serialReader.read(buffer, 0, buffer.length);
+        final int len = serialReader.read(buffer);
         // Find beginning of message
         int begin = -1;
         for (int s = 0; s < len; s++) {
@@ -59,11 +59,10 @@ public class UARTMessageWindowBehavior implements SerialListener {
         // We have a begin and an end - strip off [].
         final int finalBegin = begin + 1;
         final int finalEnd = end - 1;
-        final int msgLen = finalEnd - finalBegin;
+        final short messageLen = (short)(finalEnd - finalBegin);
         channel.publishTopic(topic, pubSubWriter -> {
-            pubSubWriter.writeLong(timestampId, timeStamp);
-            pubSubWriter.writeShort(msgLen);
-            pubSubWriter.write(buffer, finalBegin, msgLen);
+            pubSubWriter.writeLong(timeStamp);
+            pubSubWriter.write(buffer, finalBegin, messageLen);
         });
         // Consume only to the end. Our next message should begin with a [.
         return len - end;

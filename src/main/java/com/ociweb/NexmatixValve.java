@@ -5,6 +5,8 @@ import com.ociweb.behaviors.*;
 import com.ociweb.gl.api.MQTTConfig;
 import com.ociweb.iot.maker.*;
 
+import java.util.Objects;
+
 public class NexmatixValve implements FogApp
 {
     private MQTTConfig mqttConfig;
@@ -12,21 +14,29 @@ public class NexmatixValve implements FogApp
 
     @Override
     public void declareConnections(Hardware builder) {
-        builder.useSerial(Baud.B_____9600); //optional device can be set as the second argument
-        mqttConfig = builder.useMQTT("127.0.0.1", 1883, "NexmatixValve")
+       builder.useSerial(Baud.B_____9600); //optional device can be set as the second argument
+       mqttConfig = builder.useMQTT("127.0.0.1", 1883, "NexmatixValve")
                 .cleanSession(true)
                 .transmissionOoS(1)
                 .subscriptionQoS(1)
                 .keepAliveSeconds(10);
         builder.limitThreads();
+
+        if (builder.args() != null && builder.args().length > 0 && builder.args()[0].equals("sim")) {
+            builder.setTimerPulseRate(1000);
+        }
     }
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
+
+        if (runtime.args() != null && runtime.args().length > 0 && runtime.args()[0].equals("sim")) {
+            runtime.registerListener(new SerialSimulatorBehavior(runtime));
+        }
         // Register the serial listener that chunks the messages
-        runtime.registerListener(new UARTMessageWindowBehavior(runtime, "uart", 128));
+        runtime.registerListener(new UARTMessageWindowBehavior(runtime, "uart"));
         // Register the listener that publishes per field in the message
-        final FieldPublisherBehavior fields = new FieldPublisherBehavior(runtime, "value", 128);
+        final FieldPublisherBehavior fields = new FieldPublisherBehavior(runtime, "value");
         runtime.registerListener(fields).addSubscription("uart");
         // For every station and published field
         for (int stationId = 0; stationId < 10; stationId++) {

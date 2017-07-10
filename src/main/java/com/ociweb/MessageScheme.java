@@ -2,9 +2,9 @@ package com.ociweb;
 import com.ociweb.pronghorn.util.TrieParser;
 
 public class MessageScheme {
-    public static final int timestampId = 256;
+    public static final int messageSize = 256;
 
-    private static String[] patterns = new String[] {
+    public static String[] patterns = new String[] {
             "st%u",
             "sn%i",
             "pn\"%b\"",
@@ -56,7 +56,7 @@ public class MessageScheme {
     };
 
     public static TrieParser buildParser() {
-        TrieParser tp = new TrieParser(256,1,false,true);
+        TrieParser tp = new TrieParser(messageSize,1,false,true);
         tp.setMaxNumericLengthCapturable(16);
         tp.setMaxBytesCapturable(36);
         for (int i = 0; i < patterns.length; i++) {

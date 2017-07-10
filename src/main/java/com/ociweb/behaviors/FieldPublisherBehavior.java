@@ -8,18 +8,14 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.util.TrieParser;
 import com.ociweb.pronghorn.util.TrieParserReader;
 
-import static com.ociweb.MessageScheme.timestampId;
-
 public class FieldPublisherBehavior implements PubSubListener {
     private final FogCommandChannel channel;
     public final String[][] publishTopics;
-    private final byte[] buffer;
     private final TrieParser parser = MessageScheme.buildParser();
     private final TrieParserReader reader = new TrieParserReader(1);
 
-    public FieldPublisherBehavior(FogRuntime runtime, String topic, int maxMessageLen) {
+    public FieldPublisherBehavior(FogRuntime runtime, String topic) {
         this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-        this.buffer = new byte[maxMessageLen];
         this.publishTopics = new String[10][MessageScheme.topics.length];
 
         for (int stationId = 0; stationId < 10; stationId++) {
@@ -32,20 +28,17 @@ public class FieldPublisherBehavior implements PubSubListener {
     @Override
     public boolean message(CharSequence charSequence, MessageReader messageReader) {
         final long timeStamp = messageReader.readLong();
-        final int messageLen = messageReader.readShort();
-        final int read = messageReader.read(buffer, 0, messageLen);
-        if (read == messageLen) {
-            int stationId = -1;
-            while (true) {
-                // Why return long only to down cast it for capture methods?
-                int parsedId = (int) TrieParserReader.parseNext(reader, parser);
-                if (parsedId == -1) {
-                    break;
-                } else if (parsedId == 0) {
-                    stationId = (int)TrieParserReader.capturedLongField(reader, parsedId);
-                } else if (stationId != -1) {
-                    publishSingleValue(timeStamp, stationId, parsedId);
-                }
+
+        int stationId = -1;
+        while (true) {
+            // Why return long only to down cast it to int for capture methods?
+            int parsedId = (int) messageReader.parseUTF(reader, parser);
+            if (parsedId == -1) {
+                break;
+            } else if (parsedId == 0) {
+                stationId = (int)TrieParserReader.capturedLongField(reader, parsedId);
+            } else if (stationId != -1) {
+                publishSingleValue(timeStamp, stationId, parsedId);
             }
         }
         return true;
@@ -57,10 +50,10 @@ public class FieldPublisherBehavior implements PubSubListener {
             return;
         }
         channel.publishTopic(publishTopics[stationId][valueId], pubSubWriter -> {
-            pubSubWriter.writeLong(timestampId, timeStamp);
+            pubSubWriter.writeLong(timeStamp);
             if (fieldType == 0) {
                 int value = (int)TrieParserReader.capturedLongField(reader, valueId);
-                pubSubWriter.writeInt(valueId, value);
+                pubSubWriter.writeInt(value);
             }
             else if (fieldType == 1) {
                 TrieParserReader.capturedFieldBytesAsUTF8(reader, valueId, pubSubWriter);
