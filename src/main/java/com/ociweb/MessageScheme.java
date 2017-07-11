@@ -3,13 +3,14 @@ import com.ociweb.pronghorn.util.TrieParser;
 
 public class MessageScheme {
     public static final int messageSize = 256;
+    public static final int stationCount = 3;
 
     public static String[] patterns = new String[] {
             "st%u",
             "sn%i",
             "pn\"%b\"",
             "cc%i",
-            "sp%i",
+/*            "sp%i",
             "pp%i",
             "da%i",
             "db%i",
@@ -18,7 +19,7 @@ public class MessageScheme {
             "lr%i",
             "vf%i",
             "pf\"%b\"",
-            "lf%i"
+            "lf%i"*/
     };
 
     public static String[] topics = new String[] {
@@ -26,7 +27,7 @@ public class MessageScheme {
             "SerialNumber",
             "ProductNumber",
             "CycleCount",
-            "SupplyPressure",
+ /*           "SupplyPressure",
             "PressurePoint",
             "DurationOfLast1_4Signal",
             "DurationOfLast1_2Signal",
@@ -35,7 +36,7 @@ public class MessageScheme {
             "ResidualOfDynamicAnalysis",
             "ValveFault",
             "PressureFault",
-            "LeakFault",
+            "LeakFault",*/
     };
 
     public static int[] types = new int[] {
@@ -43,7 +44,7 @@ public class MessageScheme {
             0,
             1,
             0,
-            0,
+ /*           0,
             0,
             0,
             0,
@@ -52,7 +53,7 @@ public class MessageScheme {
             0,
             0,
             1,
-            0,
+            0,*/
     };
 
     public static TrieParser buildParser() {

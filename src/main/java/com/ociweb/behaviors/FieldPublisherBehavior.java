@@ -8,6 +8,8 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.util.TrieParser;
 import com.ociweb.pronghorn.util.TrieParserReader;
 
+import static com.ociweb.MessageScheme.stationCount;
+
 public class FieldPublisherBehavior implements PubSubListener {
     private final FogCommandChannel channel;
     public final String[][] publishTopics;
@@ -16,9 +18,9 @@ public class FieldPublisherBehavior implements PubSubListener {
 
     public FieldPublisherBehavior(FogRuntime runtime, String topic) {
         this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-        this.publishTopics = new String[10][MessageScheme.topics.length];
+        this.publishTopics = new String[stationCount][MessageScheme.topics.length];
 
-        for (int stationId = 0; stationId < 10; stationId++) {
+        for (int stationId = 0; stationId < stationCount; stationId++) {
             for (int valueId = 1; valueId < MessageScheme.topics.length; valueId++) {
                 this.publishTopics[stationId][valueId] = String.format("%s/%d/%d", topic, stationId, valueId);
             }

@@ -7,6 +7,8 @@ import com.ociweb.iot.maker.*;
 
 import java.util.Objects;
 
+import static com.ociweb.MessageScheme.stationCount;
+
 public class NexmatixValve implements FogApp
 {
     private MQTTConfig mqttConfig;
@@ -20,8 +22,8 @@ public class NexmatixValve implements FogApp
                 .transmissionOoS(1)
                 .subscriptionQoS(1)
                 .keepAliveSeconds(10);*/
-        builder.limitThreads();
-        builder.enableTelemetry(true);
+        //builder.limitThreads();
+        //builder.enableTelemetry(true);
         //if (builder.args() != null && builder.args().length > 0 && builder.args()[0].equals("sim")) {
             builder.setTimerPulseRate(1000);
         //}
@@ -39,7 +41,7 @@ public class NexmatixValve implements FogApp
         final FieldPublisherBehavior fields = new FieldPublisherBehavior(runtime, "value");
         runtime.registerListener(fields).addSubscription("uart");
         // For every station and published field
-        for (int stationId = 0; stationId < 10; stationId++) {
+        for (int stationId = 0; stationId < stationCount; stationId++) {
             for (int valueId = 1; valueId < MessageScheme.topics.length; valueId++) {
                 // Create a filter for that field
                 final FieldFilterBehavior filter = new FieldFilterBehavior(runtime, "filtered", stationId, valueId);

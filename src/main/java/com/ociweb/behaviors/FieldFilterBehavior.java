@@ -22,6 +22,7 @@ public class FieldFilterBehavior implements PubSubListener {
 
     @Override
     public boolean message(CharSequence charSequence, MessageReader messageReader) {
+        System.out.print(charSequence);
         final long timeStamp = messageReader.readLong();
         boolean publish = false;
         if (fieldType == 0) {
