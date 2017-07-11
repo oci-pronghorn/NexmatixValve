@@ -21,7 +21,7 @@ public class NexmatixValve implements FogApp
                 .subscriptionQoS(1)
                 .keepAliveSeconds(10);*/
         builder.limitThreads();
-
+        builder.enableTelemetry(true);
         //if (builder.args() != null && builder.args().length > 0 && builder.args()[0].equals("sim")) {
             builder.setTimerPulseRate(1000);
         //}
@@ -39,15 +39,15 @@ public class NexmatixValve implements FogApp
         final FieldPublisherBehavior fields = new FieldPublisherBehavior(runtime, "value");
         runtime.registerListener(fields).addSubscription("uart");
         // For every station and published field
-        /* for (int stationId = 0; stationId < 10; stationId++) {
+        for (int stationId = 0; stationId < 10; stationId++) {
             for (int valueId = 1; valueId < MessageScheme.topics.length; valueId++) {
                 // Create a filter for that field
                 final FieldFilterBehavior filter = new FieldFilterBehavior(runtime, "filtered", stationId, valueId);
                 runtime.registerListener(filter).addSubscription(fields.publishTopics[stationId][valueId]);
                 // Broadcast the value to MQTT transforming the topic
-                final String mqttTopic = String.format("%s/%d/%s", manifoldTopic, stationId, MessageScheme.topics[valueId]);
-                runtime.transmissionBridge(filter.publishTopic, mqttTopic, mqttConfig); //optional 2 topics, optional transform lambda
+               // final String mqttTopic = String.format("%s/%d/%s", manifoldTopic, stationId, MessageScheme.topics[valueId]);
+               // runtime.transmissionBridge(filter.publishTopic, mqttTopic, mqttConfig); //optional 2 topics, optional transform lambda
             }
-        }*/
+        }
     }
 }

@@ -12,7 +12,7 @@ public class FieldPublisherBehavior implements PubSubListener {
     private final FogCommandChannel channel;
     public final String[][] publishTopics;
     private final TrieParser parser = MessageScheme.buildParser();
-    private final TrieParserReader reader = new TrieParserReader(1);
+    private final TrieParserReader reader = new TrieParserReader(4, true);
 
     public FieldPublisherBehavior(FogRuntime runtime, String topic) {
         this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
@@ -28,40 +28,41 @@ public class FieldPublisherBehavior implements PubSubListener {
     @Override
     public boolean message(CharSequence charSequence, MessageReader messageReader) {
         final long timeStamp = messageReader.readLong();
-        StringBuilder a = new StringBuilder();
-        messageReader.readUTF(a);
-        System.out.println(a.toString());
-        /*
+        //StringBuilder a = new StringBuilder();
+        //messageReader.readUTF(a);
+        //System.out.println(a.toString());
         final short messageLength = messageReader.readShort();
+        reader.parseSetup(messageReader, messageLength);
         int stationId = -1;
         while (true) {
             // Why return long only to down cast it to int for capture methods?
-            int parsedId = (int) messageReader.parseUTF(reader, parser);
+            int parsedId = (int) TrieParserReader.parseNext(reader, parser);
             if (parsedId == -1) {
-                break;
+                if (TrieParserReader.parseSkipOne(reader) == -1) {
+                    break;
+                }
             } else if (parsedId == 0) {
-                stationId = (int)TrieParserReader.capturedLongField(reader, parsedId);
+                stationId = (int)TrieParserReader.capturedLongField(reader, 0);
             } else if (stationId != -1) {
                 publishSingleValue(timeStamp, stationId, parsedId);
             }
         }
-        */
         return true;
     }
 
-    private void publishSingleValue(long timeStamp, int stationId, int valueId) {
-        final int fieldType = MessageScheme.types[valueId];
+    private void publishSingleValue(long timeStamp, int stationId, int parsedId) {
+        final int fieldType = MessageScheme.types[parsedId];
         if (fieldType == -1) {
             return;
         }
-        channel.publishTopic(publishTopics[stationId][valueId], pubSubWriter -> {
+        channel.publishTopic(publishTopics[stationId][parsedId], pubSubWriter -> {
             pubSubWriter.writeLong(timeStamp);
             if (fieldType == 0) {
-                int value = (int)TrieParserReader.capturedLongField(reader, valueId);
+                int value = (int)TrieParserReader.capturedLongField(reader, 0);
                 pubSubWriter.writeInt(value);
             }
             else if (fieldType == 1) {
-                TrieParserReader.capturedFieldBytesAsUTF8(reader, valueId, pubSubWriter);
+                TrieParserReader.capturedFieldBytesAsUTF8(reader, parsedId, pubSubWriter);
             }
         });
     }

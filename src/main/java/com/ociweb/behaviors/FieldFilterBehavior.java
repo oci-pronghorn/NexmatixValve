@@ -43,9 +43,11 @@ public class FieldFilterBehavior implements PubSubListener {
                 pubSubWriter.writeLong(timeStamp);
                 if (fieldType == 0) {
                     pubSubWriter.writeInt(intCache);
+                    System.out.println("Out: " + intCache);
                 }
                 else {
                     pubSubWriter.writeUTF(stringCache);
+                    System.out.println("Out: " + stringCache);
                 }
             });
         }
