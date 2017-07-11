@@ -13,8 +13,8 @@ public class SerialSimulatorBehavior implements TimeListener {
 
     private static final String[] msgs = new String[] {
             "[]", // empty
-            "garbage[", // begin
-            "]garbage", // end
+            "garbage[st", // begin
+            "1]garbage", // end
             "[garbage]", // garbage
             "[st10]", // illegal
             completeMessage(),

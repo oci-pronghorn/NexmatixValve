@@ -28,7 +28,11 @@ public class FieldPublisherBehavior implements PubSubListener {
     @Override
     public boolean message(CharSequence charSequence, MessageReader messageReader) {
         final long timeStamp = messageReader.readLong();
-
+        StringBuilder a = new StringBuilder();
+        messageReader.readUTF(a);
+        System.out.println(a.toString());
+        /*
+        final short messageLength = messageReader.readShort();
         int stationId = -1;
         while (true) {
             // Why return long only to down cast it to int for capture methods?
@@ -41,6 +45,7 @@ public class FieldPublisherBehavior implements PubSubListener {
                 publishSingleValue(timeStamp, stationId, parsedId);
             }
         }
+        */
         return true;
     }
 

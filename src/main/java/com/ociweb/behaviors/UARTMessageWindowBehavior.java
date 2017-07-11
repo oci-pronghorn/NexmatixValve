@@ -59,12 +59,15 @@ public class UARTMessageWindowBehavior implements SerialListener {
         // We have a begin and an end - strip off [].
         final int finalBegin = begin + 1;
         final int finalEnd = end - 1;
-        final short messageLen = (short)(finalEnd - finalBegin);
-        channel.publishTopic(topic, pubSubWriter -> {
-            pubSubWriter.writeLong(timeStamp);
-            pubSubWriter.write(buffer, finalBegin, messageLen);
-        });
+        final short messageLen = (short)(finalEnd - finalBegin + 1);
+        if (messageLen > 0) {
+            channel.publishTopic(topic, pubSubWriter -> {
+                pubSubWriter.writeLong(timeStamp);
+                pubSubWriter.writeShort(messageLen);
+                pubSubWriter.write(buffer, finalBegin, messageLen);
+            });
+        }
         // Consume only to the end. Our next message should begin with a [.
-        return len - end;
+        return end + 1;
     }
 }
