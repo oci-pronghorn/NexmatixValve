@@ -73,7 +73,7 @@ public class FieldPublisherBehavior implements PubSubListener {
                 pubSubWriter.writeInt(value);
             }
             else if (fieldType == 1) {
-                TrieParserReader.capturedFieldBytesAsUTF8(reader, 0, pubSubWriter);
+                TrieParserReader.writeCapturedUTF8(reader, 0, pubSubWriter);
             }
         });
     }
