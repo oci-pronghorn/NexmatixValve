@@ -42,6 +42,7 @@ public class UARTMessageWindowBehavior implements SerialListener {
         }
         // If no beginning then consume it all with no publish.
         if (begin == -1) {
+            System.out.println("B) No begin - consume garbage");
             return len;
         }
         // Find end of message
@@ -54,6 +55,7 @@ public class UARTMessageWindowBehavior implements SerialListener {
         }
         // If no end then consume nothing. Data will be appended and received again.
         if (end == -1) {
+            System.out.println("B) No end - accume to end");
             return 0;
         }
         // We have a begin and an end - strip off [].
@@ -64,8 +66,12 @@ public class UARTMessageWindowBehavior implements SerialListener {
             channel.publishTopic(topic, pubSubWriter -> {
                 pubSubWriter.writeLong(timeStamp);
                 pubSubWriter.writeShort(messageLen);
+                System.out.println(String.format("B) %d %s", messageLen, new String(buffer, finalBegin, messageLen)));
                 pubSubWriter.write(buffer, finalBegin, messageLen);
             });
+        }
+        else {
+            System.out.println("B) Empty Message");
         }
         // Consume only to the end. Our next message should begin with a [.
         return end + 1;

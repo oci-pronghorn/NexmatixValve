@@ -32,21 +32,32 @@ public class FieldPublisherBehavior implements PubSubListener {
         final long timeStamp = messageReader.readLong();
         //StringBuilder a = new StringBuilder();
         //messageReader.readUTF(a);
-        //System.out.println(a.toString());
+        //System.out.println("C) Recieved: " + a.toString());
         final short messageLength = messageReader.readShort();
+        System.out.println("C) Length: " + messageLength);
         reader.parseSetup(messageReader, messageLength);
         int stationId = -1;
         while (true) {
             // Why return long only to down cast it to int for capture methods?
             int parsedId = (int) TrieParserReader.parseNext(reader, parser);
+            System.out.println("C) Parsed Field: " + parsedId);
             if (parsedId == -1) {
                 if (TrieParserReader.parseSkipOne(reader) == -1) {
+                    System.out.println("C) End of Message");
                     break;
                 }
-            } else if (parsedId == 0) {
+            }
+            else if (parsedId == 0) {
                 stationId = (int)TrieParserReader.capturedLongField(reader, 0);
-            } else if (stationId != -1) {
-                publishSingleValue(timeStamp, stationId, parsedId);
+                System.out.println("C) Station Id: " + stationId);
+            }
+            else {
+                if (stationId != -1) {
+                    publishSingleValue(timeStamp, stationId, parsedId);
+                }
+                else {
+                    System.out.println("C) Value before Station dropped");
+                }
             }
         }
         return true;
@@ -54,9 +65,7 @@ public class FieldPublisherBehavior implements PubSubListener {
 
     private void publishSingleValue(long timeStamp, int stationId, int parsedId) {
         final int fieldType = MessageScheme.types[parsedId];
-        if (fieldType == -1) {
-            return;
-        }
+        System.out.println("C) Publishing: " + parsedId + " <" + fieldType + ">");
         channel.publishTopic(publishTopics[stationId][parsedId], pubSubWriter -> {
             pubSubWriter.writeLong(timeStamp);
             if (fieldType == 0) {

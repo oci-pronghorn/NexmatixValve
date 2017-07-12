@@ -22,11 +22,11 @@ public class FieldFilterBehavior implements PubSubListener {
 
     @Override
     public boolean message(CharSequence charSequence, MessageReader messageReader) {
-        System.out.print(charSequence);
         final long timeStamp = messageReader.readLong();
         boolean publish = false;
         if (fieldType == 0) {
             int newValue = messageReader.readInt();
+            System.out.println(String.format("D) Path:%s <%d> %d", this.publishTopic, fieldType, newValue));
             if (newValue != intCache) {
                 intCache = newValue;
                 publish = true;
@@ -34,6 +34,7 @@ public class FieldFilterBehavior implements PubSubListener {
         }
         else if (fieldType == 1) {
             String newValue = messageReader.readUTF();
+            System.out.println(String.format("D) Path:%s <%d> %s", this.publishTopic, fieldType, newValue));
             if (!newValue.equals(stringCache)) {
                 stringCache = newValue;
                 publish = true;
@@ -42,15 +43,17 @@ public class FieldFilterBehavior implements PubSubListener {
         if (publish) {
             channel.publishTopic(publishTopic, pubSubWriter -> {
                 pubSubWriter.writeLong(timeStamp);
+                System.out.println("D) Issued");
                 if (fieldType == 0) {
                     pubSubWriter.writeInt(intCache);
-                    System.out.println("Out: " + intCache);
                 }
                 else {
                     pubSubWriter.writeUTF(stringCache);
-                    System.out.println("Out: " + stringCache);
                 }
             });
+        }
+        else {
+            System.out.println("D) Filtered");
         }
         return true;
     }

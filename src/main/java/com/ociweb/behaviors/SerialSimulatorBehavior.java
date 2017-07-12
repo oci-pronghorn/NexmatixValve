@@ -14,7 +14,7 @@ public class SerialSimulatorBehavior implements TimeListener {
     private static final String[] msgs = new String[] {
             "[]", // empty
             "garbage[st", // begin
-            "1]garbage", // end
+            "3]garbage", // end
             "[garbage]", // garbage
             "[st10]", // illegal
             completeMessage(),
@@ -23,9 +23,12 @@ public class SerialSimulatorBehavior implements TimeListener {
     private static String completeMessage() {
         StringBuilder s = new StringBuilder("[");
         for (int i = 0; i < MessageScheme.patterns.length; i++) {
-            String value = MessageScheme.patterns[i].substring(0, 2) + i;
+            String value = MessageScheme.patterns[i].substring(0, 2);
             if (MessageScheme.types[i] == 1) {
-                value = "\"" + value + "\"";
+                value += "\"" + i + "\"";
+            }
+            else {
+                value += i;
             }
             s.append(value);
         }
@@ -40,6 +43,7 @@ public class SerialSimulatorBehavior implements TimeListener {
     @Override
     public void timeEvent(long l, int i) {
         channel.publishSerial(serialWriter -> {
+            System.out.println(String.format("A) %s", msgs[msgIndex]));
             serialWriter.writeUTF8Text(msgs[msgIndex]);
             msgIndex++;
             if (msgIndex == msgs.length) {
