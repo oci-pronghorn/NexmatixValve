@@ -43,7 +43,7 @@ public class SerialSimulatorBehavior implements TimeListener {
     @Override
     public void timeEvent(long l, int i) {
         channel.publishSerial(serialWriter -> {
-            System.out.println(String.format("A) %s", msgs[msgIndex]));
+            System.out.println(String.format("A) '%s'", msgs[msgIndex]));
             serialWriter.writeUTF8Text(msgs[msgIndex]);
             msgIndex++;
             if (msgIndex == msgs.length) {

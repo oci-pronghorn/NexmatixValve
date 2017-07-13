@@ -66,7 +66,7 @@ public class UARTMessageWindowBehavior implements SerialListener {
             channel.publishTopic(topic, pubSubWriter -> {
                 pubSubWriter.writeLong(timeStamp);
                 pubSubWriter.writeShort(messageLen);
-                System.out.println(String.format("B) %d %s", messageLen, new String(buffer, finalBegin, messageLen)));
+                System.out.println(String.format("B) %d '%s'", messageLen, new String(buffer, finalBegin, messageLen)));
                 pubSubWriter.write(buffer, finalBegin, messageLen);
             });
         }
