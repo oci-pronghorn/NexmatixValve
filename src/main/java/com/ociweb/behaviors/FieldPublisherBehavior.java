@@ -1,6 +1,7 @@
 package com.ociweb.behaviors;
 
-import com.ociweb.MessageScheme;
+import com.ociweb.schema.FieldType;
+import com.ociweb.schema.MessageScheme;
 import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -8,7 +9,7 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.util.TrieParser;
 import com.ociweb.pronghorn.util.TrieParserReader;
 
-import static com.ociweb.MessageScheme.stationCount;
+import static com.ociweb.schema.MessageScheme.stationCount;
 
 public class FieldPublisherBehavior implements PubSubListener {
     private final FogCommandChannel channel;
@@ -64,16 +65,20 @@ public class FieldPublisherBehavior implements PubSubListener {
     }
 
     private void publishSingleValue(long timeStamp, int stationId, int parsedId) {
-        final int fieldType = MessageScheme.types[parsedId];
+        final FieldType fieldType = MessageScheme.types[parsedId];
         System.out.println("C) Publishing: " + parsedId + " <" + fieldType + ">");
         channel.publishTopic(publishTopics[stationId][parsedId], pubSubWriter -> {
             pubSubWriter.writeLong(timeStamp);
-            if (fieldType == 0) {
-                int value = (int)TrieParserReader.capturedLongField(reader, 0);
-                pubSubWriter.writeInt(value);
-            }
-            else if (fieldType == 1) {
-                TrieParserReader.writeCapturedUTF8(reader, 0, pubSubWriter);
+            switch (fieldType) {
+                case integer: {
+                    int value = (int) TrieParserReader.capturedLongField(reader, 0);
+                    pubSubWriter.writeInt(value);
+                    break;
+                }
+                case string: {
+                    TrieParserReader.writeCapturedUTF8(reader, 0, pubSubWriter);
+                    break;
+                }
             }
         });
     }

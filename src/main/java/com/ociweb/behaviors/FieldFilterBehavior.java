@@ -1,6 +1,7 @@
 package com.ociweb.behaviors;
 
-import com.ociweb.MessageScheme;
+import com.ociweb.schema.FieldType;
+import com.ociweb.schema.MessageScheme;
 import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -8,7 +9,7 @@ import com.ociweb.iot.maker.FogRuntime;
 
 public class FieldFilterBehavior implements PubSubListener {
     private final FogCommandChannel channel;
-    private final int fieldType;
+    private final FieldType fieldType;
     public final String publishTopic;
 
     private int intCache = Integer.MAX_VALUE;
@@ -24,29 +25,35 @@ public class FieldFilterBehavior implements PubSubListener {
     public boolean message(CharSequence charSequence, MessageReader messageReader) {
         final long timeStamp = messageReader.readLong();
         boolean publish = false;
-        if (fieldType == 0) {
-            int newValue = messageReader.readInt();
-            if (newValue != intCache) {
-                intCache = newValue;
-                publish = true;
+        switch (fieldType) {
+            case integer: {
+                int newValue = messageReader.readInt();
+                if (newValue != intCache) {
+                    intCache = newValue;
+                    publish = true;
+                }
+                break;
             }
-        }
-        else if (fieldType == 1) {
-            String newValue = messageReader.readUTF();
-            if (!newValue.equals(stringCache)) {
-                stringCache = newValue;
-                publish = true;
+            case string: {
+                String newValue = messageReader.readUTF();
+                if (!newValue.equals(stringCache)) {
+                    stringCache = newValue;
+                    publish = true;
+                }
+                break;
             }
         }
         if (publish) {
             channel.publishTopic(publishTopic, pubSubWriter -> {
                 pubSubWriter.writeLong(timeStamp);
                 System.out.println(String.format("D) Issued: Path:%s", this.publishTopic));
-                if (fieldType == 0) {
-                    pubSubWriter.writeInt(intCache);
-                }
-                else {
-                    pubSubWriter.writeUTF(stringCache);
+                switch (fieldType) {
+                    case integer:
+                        pubSubWriter.writeInt(intCache);
+                        break;
+                    case string:
+                        pubSubWriter.writeUTF(stringCache);
+                        break;
                 }
             });
         }

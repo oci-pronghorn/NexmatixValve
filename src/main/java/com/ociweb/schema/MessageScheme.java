@@ -1,5 +1,8 @@
-package com.ociweb;
+package com.ociweb.schema;
 import com.ociweb.pronghorn.util.TrieParser;
+
+import static com.ociweb.schema.FieldType.integer;
+import static com.ociweb.schema.FieldType.string;
 
 public class MessageScheme {
     public static final int messageSize = 256;
@@ -39,21 +42,21 @@ public class MessageScheme {
             "LeakFault",
     };
 
-    public static int[] types = new int[] {
-            0,
-            0,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
+    public static FieldType[] types = new FieldType[] {
+            integer,
+            integer,
+            string,
+            integer,
+            integer,
+            integer,
+            integer,
+            integer,
+            integer,
+            integer,
+            integer,
+            integer,
+            string,
+            integer,
     };
 
     public static TrieParser buildParser() {

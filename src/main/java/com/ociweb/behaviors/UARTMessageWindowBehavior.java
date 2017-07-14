@@ -5,7 +5,7 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.SerialListener;
 import com.ociweb.iot.maker.SerialReader;
 
-import static com.ociweb.MessageScheme.messageSize;
+import static com.ociweb.schema.MessageScheme.messageSize;
 
 public class UARTMessageWindowBehavior implements SerialListener {
     private final String topic;

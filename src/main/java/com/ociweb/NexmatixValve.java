@@ -1,13 +1,11 @@
 package com.ociweb;
 
-
+import com.ociweb.schema.MessageScheme;
 import com.ociweb.behaviors.*;
 import com.ociweb.gl.api.MQTTConfig;
 import com.ociweb.iot.maker.*;
 
-import java.util.Objects;
-
-import static com.ociweb.MessageScheme.stationCount;
+import static com.ociweb.schema.MessageScheme.stationCount;
 
 public class NexmatixValve implements FogApp
 {
@@ -23,17 +21,17 @@ public class NexmatixValve implements FogApp
                 .subscriptionQoS(1)
                 .keepAliveSeconds(10);
         //builder.enableTelemetry(true);
-        //if (builder.args() != null && builder.args().length > 0 && builder.args()[0].equals("sim")) {
+        if (builder.args() != null && builder.args().length > 0 && builder.args()[0].equals("sim")) {
             builder.setTimerPulseRate(1000);
-        //}
+        }
     }
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
 
-        //if (runtime.args() != null && runtime.args().length > 0 && runtime.args()[0].equals("sim")) {
+        if (runtime.args() != null && runtime.args().length > 0 && runtime.args()[0].equals("sim")) {
             runtime.registerListener(new SerialSimulatorBehavior(runtime));
-        //}
+        }
         // Register the serial listener that chunks the messages
         runtime.registerListener(new UARTMessageWindowBehavior(runtime, "UART"));
         runtime.subscriptionBridge("foobar", mqttConfig);

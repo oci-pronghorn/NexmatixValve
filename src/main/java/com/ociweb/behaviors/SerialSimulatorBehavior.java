@@ -1,11 +1,12 @@
 package com.ociweb.behaviors;
 
-import com.ociweb.MessageScheme;
+import com.ociweb.schema.MessageScheme;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 
 import static com.ociweb.iot.maker.FogCommandChannel.SERIAL_WRITER;
+import static com.ociweb.schema.FieldType.string;
 
 public class SerialSimulatorBehavior implements TimeListener {
     private final FogCommandChannel channel;
@@ -24,7 +25,7 @@ public class SerialSimulatorBehavior implements TimeListener {
         StringBuilder s = new StringBuilder("[");
         for (int i = 0; i < MessageScheme.patterns.length; i++) {
             String value = MessageScheme.patterns[i].substring(0, 2);
-            if (MessageScheme.types[i] == 1) {
+            if (MessageScheme.types[i] == string) {
                 value += "\"" + i + "\"";
             }
             else {
