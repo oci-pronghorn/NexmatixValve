@@ -43,10 +43,12 @@ public class NexmatixValve implements FogApp
             for (int parseId = 1; parseId < MessageScheme.topics.length; parseId++) {
                 // Create a filter for that field
                 final FieldFilterBehavior filter = new FieldFilterBehavior(runtime, "FILTER", stationId, parseId);
-                runtime.registerListener(filter).addSubscription(fields.publishTopic(stationId, parseId));
+                final String internalFieldTopic = fields.publishTopic(stationId, parseId);
+                runtime.registerListener(filter).addSubscription(internalFieldTopic);
                 // Broadcast the value to MQTT transforming the topic
-                final String mqttTopic = String.format("%s/%d/%s", manifoldTopic, stationId, MessageScheme.topics[parseId]);
-                runtime.transmissionBridge(filter.publishTopic, mqttTopic, mqttConfig); //optional 2 topics, optional transform lambda
+                final String externalTopic = String.format("%s/%d/%s", manifoldTopic, stationId, MessageScheme.topics[parseId]);
+                //runtime.registerListener(new GooglePubSubBehavior(runtime, externalTopic, parseId)).addSubscription(filter.publishTopic);
+                runtime.transmissionBridge(filter.publishTopic, externalTopic, mqttConfig); //optional 2 topics, optional transform lambda
             }
         }
     }
