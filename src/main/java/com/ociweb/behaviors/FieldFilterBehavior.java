@@ -13,7 +13,7 @@ public class FieldFilterBehavior implements PubSubListener {
     public final String publishTopic;
 
     private int intCache = Integer.MAX_VALUE;
-    private String stringCache = null;
+    private String stringCache = "";
 
     public FieldFilterBehavior(FogRuntime runtime, String topic, int stationId, int valueId) {
         this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
@@ -28,6 +28,7 @@ public class FieldFilterBehavior implements PubSubListener {
         switch (fieldType) {
             case integer: {
                 int newValue = messageReader.readInt();
+                System.out.println(String.format("D) Detected: %s: %d -> %d", this.publishTopic, intCache, newValue));
                 if (newValue != intCache) {
                     intCache = newValue;
                     publish = true;
@@ -36,6 +37,7 @@ public class FieldFilterBehavior implements PubSubListener {
             }
             case string: {
                 String newValue = messageReader.readUTF();
+                System.out.println(String.format("D) Detected: %s: '%s' -> '%s'", this.publishTopic, stringCache, newValue));
                 if (!newValue.equals(stringCache)) {
                     stringCache = newValue;
                     publish = true;
@@ -46,7 +48,7 @@ public class FieldFilterBehavior implements PubSubListener {
         if (publish) {
             channel.publishTopic(publishTopic, pubSubWriter -> {
                 pubSubWriter.writeLong(timeStamp);
-                System.out.println(String.format("D) Issued: Path:%s", this.publishTopic));
+                System.out.println(String.format("D) Issued: %s", this.publishTopic));
                 switch (fieldType) {
                     case integer:
                         pubSubWriter.writeInt(intCache);
@@ -58,8 +60,7 @@ public class FieldFilterBehavior implements PubSubListener {
             });
         }
         else {
-            System.out.println(String.format("D) Dropped: Path:%s", this.publishTopic));
-            System.out.println("D) Filtered");
+            System.out.println(String.format("D) Dropped: %s", this.publishTopic));
         }
         return true;
     }
