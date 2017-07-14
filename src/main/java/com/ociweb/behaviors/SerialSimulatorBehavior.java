@@ -13,23 +13,23 @@ public class SerialSimulatorBehavior implements TimeListener {
     private int msgIndex = 0;
 
     private static final String[] msgs = new String[] {
-            "[]", // empty
-            "garbage[st", // begin
-            "3]garbage", // end
-            "[garbage]", // garbage
-            "[st10]", // illegal
+            //"[]", // empty
+            //"garbage[st", // begin
+            //"3]garbage", // end
+            //"[garbage]", // garbage
+            //"[st10]", // illegal
             completeMessage(),
     };
 
     private static String completeMessage() {
         StringBuilder s = new StringBuilder("[");
-        for (int i = 0; i < MessageScheme.patterns.length; i++) {
-            String value = MessageScheme.patterns[i].substring(0, 2);
-            if (MessageScheme.types[i] == string) {
-                value += "\"" + i + "\"";
+        for (int parseId = 0; parseId < MessageScheme.patterns.length; parseId++) {
+            String value = MessageScheme.patterns[parseId].substring(0, 2);
+            if (MessageScheme.types[parseId] == string) {
+                value += "\"" + (parseId * 10) + "\"";
             }
             else {
-                value += i;
+                value += (parseId * 10);
             }
             s.append(value);
         }
