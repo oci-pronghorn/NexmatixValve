@@ -34,7 +34,6 @@ public class NexmatixValve implements FogApp
         }
         // Register the serial listener that chunks the messages
         runtime.registerListener(new UARTMessageWindowBehavior(runtime, "UART"));
-        runtime.subscriptionBridge("foobar", mqttConfig);
         // Register the listener that publishes per field in the message
         final FieldPublisherBehavior fields = new FieldPublisherBehavior(runtime, "VALUE");
         runtime.registerListener(fields).addSubscription("UART");
