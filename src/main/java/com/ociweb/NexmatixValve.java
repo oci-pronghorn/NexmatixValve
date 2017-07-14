@@ -5,6 +5,7 @@ import com.ociweb.behaviors.*;
 import com.ociweb.gl.api.MQTTConfig;
 import com.ociweb.iot.maker.*;
 
+import static com.ociweb.schema.MessageScheme.parseIdLimit;
 import static com.ociweb.schema.MessageScheme.stationCount;
 
 public class NexmatixValve implements FogApp
@@ -20,7 +21,7 @@ public class NexmatixValve implements FogApp
                 .transmissionOoS(1)
                 .subscriptionQoS(1)
                 .keepAliveSeconds(10);
-        //builder.enableTelemetry(true);
+        builder.enableTelemetry();
         if (builder.args() != null && builder.args().length > 0 && builder.args()[0].equals("sim")) {
             builder.setTimerPulseRate(1000);
         }
@@ -40,7 +41,7 @@ public class NexmatixValve implements FogApp
         // For every station and published field
         for (int stationId = 0; stationId < stationCount; stationId++) {
             // Skip Station Id at parseId 0
-            for (int parseId = 1; parseId < MessageScheme.topics.length; parseId++) {
+            for (int parseId = 1; parseId < parseIdLimit; parseId++) {
                 // Create a filter for that field
                 final FieldFilterBehavior filter = new FieldFilterBehavior(runtime, "FILTER", stationId, parseId);
                 final String internalFieldTopic = fields.publishTopic(stationId, parseId);

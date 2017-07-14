@@ -9,6 +9,7 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.util.TrieParser;
 import com.ociweb.pronghorn.util.TrieParserReader;
 
+import static com.ociweb.schema.MessageScheme.parseIdLimit;
 import static com.ociweb.schema.MessageScheme.stationCount;
 
 public class FieldPublisherBehavior implements PubSubListener {
@@ -19,10 +20,10 @@ public class FieldPublisherBehavior implements PubSubListener {
 
     public FieldPublisherBehavior(FogRuntime runtime, String topic) {
         this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-        this.publishTopics = new String[stationCount][MessageScheme.topics.length];
+        this.publishTopics = new String[stationCount][parseIdLimit];
 
         for (int stationId = 0; stationId < stationCount; stationId++) {
-            for (int parseId = 0; parseId < MessageScheme.topics.length; parseId++) {
+            for (int parseId = 0; parseId < parseIdLimit; parseId++) {
                 this.publishTopics[stationId][parseId] = String.format("%s/%d/%d", topic, stationId, parseId);
             }
         }
@@ -61,7 +62,7 @@ public class FieldPublisherBehavior implements PubSubListener {
                     publishSingleValue(timeStamp, stationId, parsedId);
                 }
                 else {
-                    //System.out.println("C) Value before Station dropped");
+                    System.out.println("C) Value before Station dropped");
                 }
             }
         }

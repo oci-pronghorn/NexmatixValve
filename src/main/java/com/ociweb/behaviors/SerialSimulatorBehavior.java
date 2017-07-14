@@ -23,7 +23,7 @@ public class SerialSimulatorBehavior implements TimeListener {
 
     private static String completeMessage() {
         StringBuilder s = new StringBuilder("[");
-        for (int parseId = 0; parseId < MessageScheme.patterns.length; parseId++) {
+        for (int parseId = 0; parseId < MessageScheme.parseIdLimit; parseId++) {
             String value = MessageScheme.patterns[parseId].substring(0, 2);
             if (MessageScheme.types[parseId] == string) {
                 value += "\"" + (parseId * 10) + "\"";

@@ -7,11 +7,13 @@ import static com.ociweb.schema.FieldType.string;
 public class MessageScheme {
     public static final int messageSize = 256;
     public static final int stationCount = 3;
+    public static final int parseIdLimit = Math.min(14, 14);
 
     public static String[] patterns = new String[] {
             "st%u",
             "sn%i",
             "pn\"%b\"",
+            "pf\"%b\"",
             "cc%i",
             "sp%i",
             "pp%i",
@@ -21,7 +23,6 @@ public class MessageScheme {
             "ep%i",
             "lr%i",
             "vf%i",
-            "pf\"%b\"",
             "lf%i"
     };
 
@@ -29,6 +30,7 @@ public class MessageScheme {
             "StationId",
             "SerialNumber",
             "ProductNumber",
+            "PressureFault",
             "CycleCount",
             "SupplyPressure",
             "PressurePoint",
@@ -38,7 +40,6 @@ public class MessageScheme {
             "EqualizationPressureRate",
             "ResidualOfDynamicAnalysis",
             "ValveFault",
-            "PressureFault",
             "LeakFault",
     };
 
@@ -46,16 +47,16 @@ public class MessageScheme {
             integer,
             integer,
             string,
-            integer,
-            integer,
-            integer,
-            integer,
-            integer,
-            integer,
-            integer,
-            integer,
-            integer,
             string,
+            integer,
+            integer,
+            integer,
+            integer,
+            integer,
+            integer,
+            integer,
+            integer,
+            integer,
             integer,
     };
 
@@ -63,7 +64,7 @@ public class MessageScheme {
         TrieParser tp = new TrieParser(messageSize,1,false,true);
         tp.setMaxNumericLengthCapturable(16);
         tp.setMaxBytesCapturable(36);
-        for (int i = 0; i < patterns.length; i++) {
+        for (int i = 0; i < parseIdLimit; i++) {
             tp.setUTF8Value(patterns[i], i);
         }
         return tp;
