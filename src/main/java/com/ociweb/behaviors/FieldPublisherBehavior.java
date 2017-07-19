@@ -41,8 +41,7 @@ public class FieldPublisherBehavior implements PubSubListener {
         //System.out.println(String.format("C) Recieved: %d:'%s'", a.length(), a.toString()));
         final short messageLength = messageReader.readShort();
         //System.out.println("C) Length: " + messageLength);
-        //TODO: Fix
-        //reader.parseSetup(messageReader, messageLength);
+        reader.parseSetup(messageReader, messageLength);
         int stationId = -1;
         while (true) {
             // Why return long only to down cast it to int for capture methods?
