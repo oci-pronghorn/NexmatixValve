@@ -78,12 +78,6 @@
 		  	  <scope>test</scope>
 			  <optional>false</optional>
 		</dependency>
-
-      <dependency>
-          <groupId>com.google.cloud</groupId>
-          <artifactId>google-cloud-pubsub</artifactId>
-          <version>0.20.1-beta</version>
-      </dependency>
   </dependencies>
   
   	<build>

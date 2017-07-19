@@ -1,8 +1,8 @@
 package com.ociweb.behaviors;
 
+import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
-import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -22,7 +22,7 @@ public class FieldFilterBehavior implements PubSubListener {
     }
 
     @Override
-    public boolean message(CharSequence charSequence, MessageReader messageReader) {
+    public boolean message(CharSequence charSequence, BlobReader messageReader) {
         final long timeStamp = messageReader.readLong();
         boolean publish = false;
         switch (fieldType) {

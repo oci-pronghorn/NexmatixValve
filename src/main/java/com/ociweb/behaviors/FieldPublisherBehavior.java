@@ -1,8 +1,8 @@
 package com.ociweb.behaviors;
 
+import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
-import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -34,14 +34,15 @@ public class FieldPublisherBehavior implements PubSubListener {
     }
 
     @Override
-    public boolean message(CharSequence charSequence, MessageReader messageReader) {
+    public boolean message(CharSequence charSequence, BlobReader messageReader) {
         final long timeStamp = messageReader.readLong();
         //StringBuilder a = new StringBuilder();
         //messageReader.readUTF(a);
         //System.out.println(String.format("C) Recieved: %d:'%s'", a.length(), a.toString()));
         final short messageLength = messageReader.readShort();
         //System.out.println("C) Length: " + messageLength);
-        reader.parseSetup(messageReader, messageLength);
+        //TODO: Fix
+        //reader.parseSetup(messageReader, messageLength);
         int stationId = -1;
         while (true) {
             // Why return long only to down cast it to int for capture methods?
