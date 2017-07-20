@@ -6,7 +6,7 @@ import static com.ociweb.schema.FieldType.string;
 
 public class MessageScheme {
     public static final int messageSize = 256;
-    public static final int stationCount = 3;
+    public static final int stationCount = 10;
     public static final int parseIdLimit = Math.min(14, 14);
 
     public static String[] patterns = new String[] {
