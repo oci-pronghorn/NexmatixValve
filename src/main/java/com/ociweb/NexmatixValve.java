@@ -1,5 +1,6 @@
 package com.ociweb;
 
+import com.ociweb.behaviors.simulators.SerialSimulatorBehavior;
 import com.ociweb.schema.MessageScheme;
 import com.ociweb.behaviors.*;
 import com.ociweb.gl.api.MQTTConfig;
