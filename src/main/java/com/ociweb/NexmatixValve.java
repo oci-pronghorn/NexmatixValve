@@ -66,7 +66,7 @@ public class NexmatixValve implements FogApp
                 runtime.registerListener(filter).addSubscription(internalFieldTopic);
                 // Broadcast the value to MQTT transforming the topic
                 final String externalTopic = String.format("%s/%d/%s", manifoldTopic, stationId, MessageScheme.topics[parseId]);
-                runtime.transmissionBridge(filter.publishTopic, externalTopic, mqttBridge); //optional 2 topics, optional transform lambda
+                runtime.bridgeTransmission(filter.publishTopic, externalTopic, mqttBridge); //optional 2 topics, optional transform lambda
             }
         }
     }
