@@ -1,9 +1,9 @@
 package com.ociweb;
 
 import com.ociweb.behaviors.simulators.SerialSimulatorBehavior;
+import com.ociweb.gl.api.MQTTBridge;
 import com.ociweb.schema.MessageScheme;
 import com.ociweb.behaviors.*;
-import com.ociweb.gl.api.MQTTConfig;
 import com.ociweb.iot.maker.*;
 
 import static com.ociweb.schema.MessageScheme.parseIdLimit;
@@ -11,13 +11,13 @@ import static com.ociweb.schema.MessageScheme.stationCount;
 
 public class NexmatixValve implements FogApp
 {
-    private MQTTConfig mqttConfig;
+    private MQTTBridge mqttBridge;
     private final String manifoldTopic = "Manifold1";
 
     @Override
     public void declareConnections(Hardware builder) {
        builder.useSerial(Baud.B_____9600); //optional device can be set as the second argument
-       mqttConfig = builder.useMQTT("127.0.0.1", 1883, "NexmatixValve")
+        mqttBridge = builder.useMQTT("127.0.0.1", 1883, "NexmatixValve")
                 .cleanSession(true)
                 .transmissionOoS(1)
                 .subscriptionQoS(1)
@@ -49,7 +49,7 @@ public class NexmatixValve implements FogApp
                 runtime.registerListener(filter).addSubscription(internalFieldTopic);
                 // Broadcast the value to MQTT transforming the topic
                 final String externalTopic = String.format("%s/%d/%s", manifoldTopic, stationId, MessageScheme.topics[parseId]);
-                runtime.transmissionBridge(filter.publishTopic, externalTopic, mqttConfig); //optional 2 topics, optional transform lambda
+                runtime.transmissionBridge(filter.publishTopic, externalTopic, mqttBridge); //optional 2 topics, optional transform lambda
             }
         }
     }
