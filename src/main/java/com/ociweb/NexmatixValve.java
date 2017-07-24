@@ -12,7 +12,19 @@ import static com.ociweb.schema.MessageScheme.stationCount;
 public class NexmatixValve implements FogApp
 {
     private MQTTBridge mqttBridge;
-    private final String manifoldTopic = "Manifold1";
+    private boolean isSim = false;
+
+    // This should be built in!
+    private boolean hasArgument(String[] args, String longName, String shortName) {
+        if (args != null) {
+            for (String token : args) {
+                if (longName.equals(token) || shortName.equals(token)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     @Override
     public void declareConnections(Hardware builder) {
@@ -23,17 +35,22 @@ public class NexmatixValve implements FogApp
                 .subscriptionQoS(1)
                 .keepAliveSeconds(10);
         builder.enableTelemetry();
-        if (builder.args() != null && builder.args().length > 0 && builder.args()[0].equals("sim")) {
+
+        isSim = hasArgument(builder.args(), "--sim", "-s");
+
+        if (isSim) {
             builder.setTimerPulseRate(1000);
         }
     }
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-
-        if (runtime.args() != null && runtime.args().length > 0 && runtime.args()[0].equals("sim")) {
+        if (isSim) {
             runtime.registerListener(new SerialSimulatorBehavior(runtime));
         }
+
+        final String manifoldTopic = "Manifold" + runtime.getArgumentValue("--manifold", "-m", "1");
+
         // Register the serial listener that chunks the messages
         runtime.registerListener(new UARTMessageWindowBehavior(runtime, "UART"));
         // Register the listener that publishes per field in the message
