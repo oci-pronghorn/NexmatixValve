@@ -14,18 +14,6 @@ public class NexmatixValve implements FogApp
     private MQTTBridge mqttBridge;
     private boolean isSim = false;
 
-    // This should be built in!
-    private boolean hasArgument(String[] args, String longName, String shortName) {
-        if (args != null) {
-            for (String token : args) {
-                if (longName.equals(token) || shortName.equals(token)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     @Override
     public void declareConnections(Hardware builder) {
        builder.useSerial(Baud.B_____9600); //optional device can be set as the second argument
@@ -36,7 +24,7 @@ public class NexmatixValve implements FogApp
                 .keepAliveSeconds(10);
         builder.enableTelemetry();
 
-        isSim = hasArgument(builder.args(), "--sim", "-s");
+        isSim = builder.hasArgument("--sim", "-s");
 
         if (isSim) {
             builder.setTimerPulseRate(1000);
