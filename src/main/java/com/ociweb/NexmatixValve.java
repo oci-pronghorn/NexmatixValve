@@ -11,24 +11,33 @@ import static com.ociweb.schema.MessageScheme.stationCount;
 
 public class NexmatixValve implements FogApp
 {
-    private MQTTBridge mqttBridge;
+    private MQTTBridge localMqttBridge;
+    //private MQTTBridge googleMqttBridge;
     private boolean isSim = false;
 
     @Override
     public void declareConnections(Hardware builder) {
-       builder.useSerial(Baud.B_____9600); //optional device can be set as the second argument
-        mqttBridge = builder.useMQTT("127.0.0.1", 1883, "NexmatixValve")
+        builder.useSerial(Baud.B_____9600); //optional device can be set as the second argument
+        builder.useNetClient();
+
+        localMqttBridge = builder.useMQTT("127.0.0.1", 1883, "NexmatixValve")
                 .cleanSession(true)
                 .transmissionOoS(1)
                 .subscriptionQoS(1)
                 .keepAliveSeconds(10);
-        builder.enableTelemetry();
-
+/*
+        googleMqttBridge = builder.useMQTT("127.0.0.1", 1883, "NexmatixValve")
+                .cleanSession(true)
+                .transmissionOoS(1)
+                .subscriptionQoS(1)
+                .keepAliveSeconds(10);
+*/
         isSim = builder.hasArgument("--sim", "-s");
-
         if (isSim) {
             builder.setTimerPulseRate(1000);
         }
+
+        builder.enableTelemetry();
     }
 
     @Override
@@ -41,6 +50,11 @@ public class NexmatixValve implements FogApp
 
         // Register the serial listener that chunks the messages
         runtime.registerListener(new UARTMessageWindowBehavior(runtime, "UART"));
+        // Register the json converter
+        runtime.registerListener(new UARTMessageToJsonBehavior(runtime, "JSON")).addSubscription("UART");
+        // Register Google Pub Sub
+        runtime.registerListener(new GooglePubSubBehavior(runtime)).addSubscription("JSON");
+
         // Register the listener that publishes per field in the message
         final FieldPublisherBehavior fields = new FieldPublisherBehavior(runtime, "VALUE");
         runtime.registerListener(fields).addSubscription("UART");
@@ -54,7 +68,7 @@ public class NexmatixValve implements FogApp
                 runtime.registerListener(filter).addSubscription(internalFieldTopic);
                 // Broadcast the value to MQTT transforming the topic
                 final String externalTopic = String.format("%s/%d/%s", manifoldTopic, stationId, MessageScheme.topics[parseId]);
-                runtime.bridgeTransmission(filter.publishTopic, externalTopic, mqttBridge); //optional 2 topics, optional transform lambda
+                runtime.bridgeTransmission(filter.publishTopic, externalTopic, localMqttBridge); //optional 2 topics, optional transform lambda
             }
         }
     }
