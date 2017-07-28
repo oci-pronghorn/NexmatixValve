@@ -86,6 +86,12 @@ public class FieldPublisherBehavior implements PubSubListener {
                     System.out.println(String.format("C) Publishing: %s) '%s'", topic, "some string"));
                     break;
                 }
+                case floatingPoint: {
+                    double value = (double) TrieParserReader.capturedLongField(reader, 0);
+                    System.out.println(String.format("C) Publishing: %s) %f", topic, value));
+                    pubSubWriter.writeDouble(value);
+                    break;
+                }
             }
         });
     }

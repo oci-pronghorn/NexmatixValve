@@ -14,6 +14,7 @@ public class FieldFilterBehavior implements PubSubListener {
 
     private int intCache = Integer.MAX_VALUE;
     private String stringCache = "";
+    private double floatingPointCache = Double.MAX_VALUE;
 
     public FieldFilterBehavior(FogRuntime runtime, String topic, int stationId, int parseId) {
         this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
@@ -44,6 +45,15 @@ public class FieldFilterBehavior implements PubSubListener {
                 }
                 break;
             }
+            case floatingPoint: {
+                double newValue = messageReader.readDouble();
+                System.out.println(String.format("D) Detected: %s: '%s' -> '%f'", this.publishTopic, stringCache, newValue));
+                if (newValue != floatingPointCache) {
+                    floatingPointCache = newValue;
+                    publish = true;
+                }
+                break;
+            }
         }
         if (publish) {
             channel.publishTopic(publishTopic, pubSubWriter -> {
@@ -55,6 +65,9 @@ public class FieldFilterBehavior implements PubSubListener {
                         break;
                     case string:
                         pubSubWriter.writeUTF(stringCache);
+                        break;
+                    case floatingPoint:
+                        pubSubWriter.writeDouble(floatingPointCache);
                         break;
                 }
             });

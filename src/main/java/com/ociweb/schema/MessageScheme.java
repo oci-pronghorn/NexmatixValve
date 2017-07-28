@@ -43,6 +43,23 @@ public class MessageScheme {
             "LeakFault",
     };
 
+    public static String[] jsonKeys = new String[] {
+            "StationId",
+            "SerialNumber",
+            "ProductNumber",
+            "PressureFault",
+            "CycleCount",
+            "SupplyPressure",
+            "PressurePoint",
+            "DurationOfLast1_4Signal",
+            "DurationOfLast1_2Signal",
+            "EqualizationAveragePressure",
+            "EqualizationPressureRate",
+            "ResidualOfDynamicAnalysis",
+            "ValveFault",
+            "LeakFault",
+    };
+
     public static FieldType[] types = new FieldType[] {
             integer,
             integer,
