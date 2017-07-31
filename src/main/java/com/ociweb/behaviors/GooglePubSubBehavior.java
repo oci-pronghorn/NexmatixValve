@@ -9,12 +9,13 @@ public class GooglePubSubBehavior implements PubSubListener {
     private FogCommandChannel cmd;
 
     public GooglePubSubBehavior(FogRuntime runtime) {
-        this.cmd = runtime.newCommandChannel(NET_REQUESTER);
+        this.cmd = runtime.newCommandChannel(/*NET_REQUESTER*/);
     }
 
     @Override
     public boolean message(CharSequence charSequence, BlobReader messageReader) {
         String body = messageReader.readUTF();
+        System.out.println(String.format("F) %s", body));
         // TODO: send to google - cmd.httpPost("google", 42, )
         return true;
     }

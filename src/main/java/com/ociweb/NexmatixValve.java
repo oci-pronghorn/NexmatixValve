@@ -54,7 +54,7 @@ public class NexmatixValve implements FogApp
         // Register the json converter
         runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldSerial, "JSON")).addSubscription("UART");
         // Register Google Pub Sub
-        //runtime.registerListener(new GooglePubSubBehavior(runtime)).addSubscription("JSON");
+        runtime.registerListener(new GooglePubSubBehavior(runtime)).addSubscription("JSON");
 
         // Register the listener that publishes per field in the message
         final FieldPublisherBehavior fields = new FieldPublisherBehavior(runtime, "VALUE");

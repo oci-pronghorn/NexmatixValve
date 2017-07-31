@@ -13,43 +13,43 @@ public class MessageScheme {
     public static String[] patterns = new String[] {
             "st%u",
             "sn%u",
-            "inp\"%b\"",
             "cc%u",
-            "ccl%u",
+            "cl%u",
             "pp%i",
             "pf\"%b\"",
             "ld\"%b\"",
+            "in\"%b\"",
     };
 
     public static String[] topics = new String[] {
             "StationId",
             "SerialNumber",
-            "InputState",
             "CycleCount",
             "CycleCountLimnit",
             "PressurePoint",
             "PressureFault",
             "LeakDetection",
+            "InputState",
     };
 
     public static String[] jsonKeys = new String[] {
             "sn",
             "valve_sn",
-            "input",
             "cc",
-            "ccl",
+            "limit",
             "pp",
             "p_fault",
             "leak",
+            "input",
     };
 
     public static FieldType[] types = new FieldType[] {
             integer,
             integer,
-            string,
             integer,
             integer,
             floatingPoint,
+            string,
             string,
             string,
     };
