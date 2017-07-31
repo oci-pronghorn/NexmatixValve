@@ -11,7 +11,7 @@ import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
 
 public class UARTMessageToJsonBehavior implements PubSubListener {
-    private FogCommandChannel cmd;
+    private final FogCommandChannel cmd;
     private final String manifoldSerial;
     private final String publishTopic;
     private final TrieParser parser = MessageScheme.buildParser();
