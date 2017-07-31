@@ -16,10 +16,10 @@ public class FieldFilterBehavior implements PubSubListener {
     private String stringCache = "";
     private double floatingPointCache = Double.MAX_VALUE;
 
-    public FieldFilterBehavior(FogRuntime runtime, String topic, int stationId, int parseId) {
+    public FieldFilterBehavior(FogRuntime runtime, String publishTopic, int stationId, int parseId) {
         this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
         this.fieldType = MessageScheme.types[parseId];
-        this.publishTopic = String.format("%s/%d/%d", topic, stationId, parseId);
+        this.publishTopic = String.format("%s/%d/%d", publishTopic, stationId, parseId);
     }
 
     @Override

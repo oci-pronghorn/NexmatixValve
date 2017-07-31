@@ -1,80 +1,57 @@
 package com.ociweb.schema;
 import com.ociweb.pronghorn.util.TrieParser;
 
+import static com.ociweb.schema.FieldType.floatingPoint;
 import static com.ociweb.schema.FieldType.integer;
 import static com.ociweb.schema.FieldType.string;
 
 public class MessageScheme {
     public static final int messageSize = 256;
     public static final int stationCount = 10;
-    public static final int parseIdLimit = Math.min(14, 14);
+    public static final int parseIdLimit = Math.min(8, 8);
 
     public static String[] patterns = new String[] {
             "st%u",
-            "sn%i",
-            "pn\"%b\"",
-            "pf\"%b\"",
-            "cc%i",
-            "sp%i",
+            "sn%u",
+            "inp\"%b\"",
+            "cc%u",
+            "ccl%u",
             "pp%i",
-            "da%i",
-            "db%i",
-            "ap%i",
-            "ep%i",
-            "lr%i",
-            "vf%i",
-            "lf%i"
+            "pf\"%b\"",
+            "ld\"%b\"",
     };
 
     public static String[] topics = new String[] {
             "StationId",
             "SerialNumber",
-            "ProductNumber",
-            "PressureFault",
+            "InputState",
             "CycleCount",
-            "SupplyPressure",
+            "CycleCountLimnit",
             "PressurePoint",
-            "DurationOfLast1_4Signal",
-            "DurationOfLast1_2Signal",
-            "EqualizationAveragePressure",
-            "EqualizationPressureRate",
-            "ResidualOfDynamicAnalysis",
-            "ValveFault",
-            "LeakFault",
+            "PressureFault",
+            "LeakDetection",
     };
 
     public static String[] jsonKeys = new String[] {
-            "StationId",
-            "SerialNumber",
-            "ProductNumber",
-            "PressureFault",
-            "CycleCount",
-            "SupplyPressure",
-            "PressurePoint",
-            "DurationOfLast1_4Signal",
-            "DurationOfLast1_2Signal",
-            "EqualizationAveragePressure",
-            "EqualizationPressureRate",
-            "ResidualOfDynamicAnalysis",
-            "ValveFault",
-            "LeakFault",
+            "sn",
+            "valve_sn",
+            "input",
+            "cc",
+            "ccl",
+            "pp",
+            "p_fault",
+            "leak",
     };
 
     public static FieldType[] types = new FieldType[] {
             integer,
             integer,
             string,
+            integer,
+            integer,
+            floatingPoint,
             string,
-            integer,
-            integer,
-            integer,
-            integer,
-            integer,
-            integer,
-            integer,
-            integer,
-            integer,
-            integer,
+            string,
     };
 
     public static TrieParser buildParser() {

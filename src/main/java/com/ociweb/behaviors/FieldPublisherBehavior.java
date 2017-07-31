@@ -18,13 +18,13 @@ public class FieldPublisherBehavior implements PubSubListener {
     private final TrieParser parser = MessageScheme.buildParser();
     private final TrieParserReader reader = new TrieParserReader(4, true);
 
-    public FieldPublisherBehavior(FogRuntime runtime, String topic) {
+    public FieldPublisherBehavior(FogRuntime runtime, String publishTopic) {
         this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
         this.publishTopics = new String[stationCount][parseIdLimit];
 
         for (int stationId = 0; stationId < stationCount; stationId++) {
             for (int parseId = 0; parseId < parseIdLimit; parseId++) {
-                this.publishTopics[stationId][parseId] = String.format("%s/%d/%d", topic, stationId, parseId);
+                this.publishTopics[stationId][parseId] = String.format("%s/%d/%d", publishTopic, stationId, parseId);
             }
         }
     }

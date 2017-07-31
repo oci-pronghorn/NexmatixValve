@@ -11,12 +11,14 @@ import com.ociweb.schema.MessageScheme;
 
 public class UARTMessageToJsonBehavior implements PubSubListener {
     private FogCommandChannel cmd;
+    private final String manifoldSerial;
     private final String publishTopic;
     private final TrieParser parser = MessageScheme.buildParser();
     private final TrieParserReader reader = new TrieParserReader(4, true);
 
-    public UARTMessageToJsonBehavior(FogRuntime runtime, String publishTopic) {
-        this.cmd = runtime.newCommandChannel(NET_REQUESTER);
+    public UARTMessageToJsonBehavior(FogRuntime runtime, String manifoldSerial, String publishTopic) {
+        this.cmd = runtime.newCommandChannel();
+        this.manifoldSerial = manifoldSerial;
         this.publishTopic = publishTopic;
     }
 
@@ -31,6 +33,9 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
         //System.out.println("C) Length: " + messageLength);
         reader.parseSetup(messageReader, messageLength);
         int stationId = -1;
+
+        //StringBuilder json = new StringBuilder();
+
         while (true) {
             // Why return long only to down cast it to int for capture methods?
             int parsedId = (int) TrieParserReader.parseNext(reader, parser);

@@ -8,7 +8,7 @@ import com.ociweb.pronghorn.pipe.BlobReader;
 import static com.ociweb.schema.MessageScheme.messageSize;
 
 public class UARTMessageWindowBehavior implements SerialListener {
-    private final String topic;
+    private final String publishTopic;
     private final FogCommandChannel channel;
     private final byte[] buffer;
     private long timeStamp = -1;
@@ -19,8 +19,8 @@ public class UARTMessageWindowBehavior implements SerialListener {
         return (int)Math.pow(2, p);
     }
 
-    public UARTMessageWindowBehavior(FogRuntime runtime, String topic) {
-        this.topic = topic;
+    public UARTMessageWindowBehavior(FogRuntime runtime, String publishTopic) {
+        this.publishTopic = publishTopic;
         // Make certain we can fit at least one complete message
         int bufferSize = inTheKeyOf2(messageSize * 2);
         this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING, bufferSize);
@@ -63,7 +63,7 @@ public class UARTMessageWindowBehavior implements SerialListener {
         final int finalEnd = end - 1;
         final short messageLen = (short)(finalEnd - finalBegin + 1);
         if (messageLen > 0) {
-            channel.publishTopic(topic, pubSubWriter -> {
+            channel.publishTopic(publishTopic, pubSubWriter -> {
                 pubSubWriter.writeLong(timeStamp);
                 pubSubWriter.writeShort(messageLen);
                 System.out.println(String.format("B) %d:'%s'", messageLen, new String(buffer, finalBegin, messageLen)));
