@@ -10,6 +10,10 @@ import com.ociweb.pronghorn.util.TrieParserReader;
 import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+
 public class UARTMessageToJsonBehavior implements PubSubListener {
     private final FogCommandChannel cmd;
     private final String manifoldSerial;
@@ -17,14 +21,18 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
     private final TrieParser parser = MessageScheme.buildParser();
     private final TrieParserReader reader = new TrieParserReader(4, true);
 
+    private final int batchCountLimit = 4;
+    private int batchCount = 4;
+
+    private Map<Integer, StringBuilder> stations = new HashMap<>();
+
     public UARTMessageToJsonBehavior(FogRuntime runtime, String manifoldSerial, String publishTopic) {
         this.cmd = runtime.newCommandChannel();
-        this.cmd.ensureDynamicMessaging(40, 2048);
+        this.cmd.ensureDynamicMessaging(40, 16384);
         this.manifoldSerial = manifoldSerial;
         this.publishTopic = publishTopic;
     }
 
-    // TODO: build up as JSON and publish as UTF8
     @Override
     public boolean message(CharSequence charSequence, BlobReader messageReader) {
         final long timeStamp = messageReader.readLong();
@@ -37,14 +45,11 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
         int stationId = -1;
 
         StringBuilder json = new StringBuilder();
-        json.append("{\"manifolds\": { \"manifold_sn\" : ");
-        json.append(manifoldSerial);
-        json.append(", \"stations\" : {\"");
 
         while (true) {
             // Why return long only to down cast it to int for capture methods?
             int parsedId = (int) TrieParserReader.parseNext(reader, parser);
-            //System.out.println("C) Parsed Field: " + parsedId);
+            //System.out.println("E) Parsed Field: " + parsedId);
             if (parsedId == -1) {
                 if (TrieParserReader.parseSkipOne(reader) == -1) {
                     //System.out.println("E) End of Message");
@@ -53,6 +58,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
             }
             else if (parsedId == 0) {
                 stationId = (int)TrieParserReader.capturedLongField(reader, 0);
+                json.append("\"");
                 json.append(stationId);
                 json.append("\" : {");
             }
@@ -92,12 +98,31 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
         }
         json.append("\"timeStamp\":");
         json.append(timeStamp);
-        json.append("}}}}");
-        System.out.println(String.format("E) %s", json.toString()));
+        json.append("}, ");
 
-        cmd.publishTopic(publishTopic, writer -> {
-            writer.writeUTF(json.toString());
-        });
+        stations.put(stationId, json);
+
+        if (stations.size() > batchCount) {
+            StringBuilder all = new StringBuilder();
+            all.append("{\"manifolds\": { \"manifold_sn\" : ");
+            all.append(manifoldSerial);
+            all.append(", \"stations\" : {");
+
+            for (StringBuilder station: stations.values()) {
+                all.append(station);
+            }
+
+            all.delete(all.length()-3, all.length()-1);
+            all.append("}}}}");
+
+            String body = all.toString();
+            stations.clear();
+            batchCount = ThreadLocalRandom.current().nextInt(1, batchCountLimit + 1);
+            System.out.println(String.format("E) %s", body));
+            cmd.publishTopic(publishTopic, writer -> {
+                writer.writeUTF(body);
+            });
+        }
         return true;
     }
 }

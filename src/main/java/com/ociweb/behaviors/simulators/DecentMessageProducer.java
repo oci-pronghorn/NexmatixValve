@@ -1,9 +1,7 @@
 package com.ociweb.behaviors.simulators;
 
 import com.ociweb.schema.MessageScheme;
-
 import java.util.concurrent.ThreadLocalRandom;
-
 import static com.ociweb.schema.FieldType.string;
 
 public class DecentMessageProducer implements SerialMessageProducer {
