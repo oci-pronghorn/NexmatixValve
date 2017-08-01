@@ -4,7 +4,7 @@ import com.ociweb.schema.MessageScheme;
 
 import static com.ociweb.schema.FieldType.string;
 
-class BasicMessage implements SerialMessageProducer {
+class BasicMessageProducer implements SerialMessageProducer {
     private String msg = completeMessage();
     private static String completeMessage() {
         StringBuilder s = new StringBuilder("[");
