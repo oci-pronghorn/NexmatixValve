@@ -36,9 +36,9 @@ public class MessageScheme {
     };
 
     public static final String[] jsonKeys = new String[] {
-            "sn",
+            "station_num",
             "valve_sn",
-            "valve_pn",
+            "sku",
             "cc",
             "ccl",
             "pp",
@@ -47,7 +47,9 @@ public class MessageScheme {
             "input",
     };
 
-    public static final String timestampJsonKey = "timestamp";
+    public static final String manifoldSerialJsonKey = "manifold_sn";
+    public static final String timestampJsonKey = "update_time";
+    public static final String stationsJsonKey = "stations";
 
     public static final FieldType[] types = new FieldType[] {
             integer,

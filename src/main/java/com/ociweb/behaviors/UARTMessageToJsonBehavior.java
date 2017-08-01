@@ -14,8 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.ociweb.schema.MessageScheme.jsonMessageSize;
-import static com.ociweb.schema.MessageScheme.timestampJsonKey;
+import static com.ociweb.schema.MessageScheme.*;
 
 public class UARTMessageToJsonBehavior implements PubSubListener {
     private final FogCommandChannel cmd;
@@ -101,9 +100,9 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
 
         if (stations.size() > batchCount) {
             StringBuilder all = new StringBuilder();
-            all.append("{\"manifold_sn\":");
+            all.append("{\""+ manifoldSerialJsonKey + "\":");
             all.append(manifoldSerial);
-            all.append(",\"stations\":[");
+            all.append(",\"" + stationsJsonKey + "\":[");
 
             for (StringBuilder station: stations.values()) {
                 all.append(station);
