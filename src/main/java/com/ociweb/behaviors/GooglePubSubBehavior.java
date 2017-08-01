@@ -22,6 +22,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.pubsub.v1.TopicName;
@@ -51,7 +52,7 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
 
         //theFoglightWay(body);
         //theOldWay(body);
-        theGoogleWay(body);
+        theGoogleWay(json);
         return true;
     }
 
@@ -66,6 +67,8 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
         });
     }
 
+    // Must execute "gcloud auth application-default login" on command line
+    // And the user you select have permissions
     private void theGoogleWay(String body) {
 
         Publisher publisher = null;
@@ -77,7 +80,7 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
             // Create a publisher instance with default settings bound to the topic
             publisher = Publisher.defaultBuilder(topicName).build();
 
-            List<String> messages = Arrays.asList("first message", "second message");
+            List<String> messages = Collections.singletonList(body);
 
             // schedule publishing one message at a time : messages get automatically batched
             for (String message : messages) {
