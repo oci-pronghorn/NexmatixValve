@@ -71,9 +71,8 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                             break;
                         }
                         case string: {
-                            String value = "test";//TrieParserReader.writeCapturedUTF8(reader, 0, json);
                             json.append("\"");
-                            json.append(value);
+                            TrieParserReader.capturedFieldBytesAsUTF8(reader, 0, json);
                             json.append("\"");
                             json.append(", ");
                             break;
