@@ -14,6 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static com.ociweb.schema.MessageScheme.jsonMessageSize;
+import static com.ociweb.schema.MessageScheme.timestampJsonKey;
+
 public class UARTMessageToJsonBehavior implements PubSubListener {
     private final FogCommandChannel cmd;
     private final String manifoldSerial;
@@ -21,14 +24,14 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
     private final TrieParser parser = MessageScheme.buildParser();
     private final TrieParserReader reader = new TrieParserReader(4, true);
 
-    private final int batchCountLimit = 4;
-    private int batchCount = 4;
+    private final int batchCountLimit = 1;
+    private int batchCount = batchCountLimit;
 
     private Map<Integer, StringBuilder> stations = new HashMap<>();
 
     public UARTMessageToJsonBehavior(FogRuntime runtime, String manifoldSerial, String publishTopic) {
         this.cmd = runtime.newCommandChannel();
-        this.cmd.ensureDynamicMessaging(40, 16384);
+        this.cmd.ensureDynamicMessaging(64, jsonMessageSize);
         this.manifoldSerial = manifoldSerial;
         this.publishTopic = publishTopic;
     }
@@ -46,6 +49,8 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
 
         StringBuilder json = new StringBuilder();
 
+        json.append("{");
+
         while (true) {
             // Why return long only to down cast it to int for capture methods?
             int parsedId = (int) TrieParserReader.parseNext(reader, parser);
@@ -56,64 +61,56 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                     break;
                 }
             }
-            else if (parsedId == 0) {
-                stationId = (int)TrieParserReader.capturedLongField(reader, 0);
-                json.append("\"");
-                json.append(stationId);
-                json.append("\" : {");
-            }
             else {
-                if (stationId != -1) {
-                    String key = MessageScheme.jsonKeys[parsedId];
-                    final FieldType fieldType = MessageScheme.types[parsedId];
-                    json.append("\"");
-                    json.append(key);
-                    json.append("\":");
-                    switch (fieldType) {
-                        case integer: {
-                            int value = (int) TrieParserReader.capturedLongField(reader, 0);
-                            json.append(value);
-                            json.append(", ");
-                            break;
+                String key = MessageScheme.jsonKeys[parsedId];
+                final FieldType fieldType = MessageScheme.types[parsedId];
+                json.append("\"");
+                json.append(key);
+                json.append("\":");
+                switch (fieldType) {
+                    case integer: {
+                        int value = (int) TrieParserReader.capturedLongField(reader, 0);
+                        json.append(value);
+                        json.append(",");
+                        if (parsedId == 0) {
+                            stationId = value;
                         }
-                        case string: {
-                            json.append("\"");
-                            TrieParserReader.capturedFieldBytesAsUTF8(reader, 0, json);
-                            json.append("\"");
-                            json.append(", ");
-                            break;
-                        }
-                        case floatingPoint: {
-                            double value = (double) TrieParserReader.capturedLongField(reader, 0);
-                            json.append(value);
-                            json.append(", ");
-                            break;
-                        }
+                        break;
                     }
-                }
-                else {
-                    System.out.println("E) Value before Station dropped");
+                    case string: {
+                        json.append("\"");
+                        TrieParserReader.capturedFieldBytesAsUTF8(reader, 0, json);
+                        json.append("\"");
+                        json.append(",");
+                        break;
+                    }
+                    case floatingPoint: {
+                        double value = (double) TrieParserReader.capturedLongField(reader, 0);
+                        json.append(value);
+                        json.append(",");
+                        break;
+                    }
                 }
             }
         }
-        json.append("\"timeStamp\":");
+        json.append("\"" + timestampJsonKey + "\":");
         json.append(timeStamp);
-        json.append("}, ");
+        json.append("},");
 
         stations.put(stationId, json);
 
         if (stations.size() > batchCount) {
             StringBuilder all = new StringBuilder();
-            all.append("{\"manifolds\": { \"manifold_sn\" : ");
+            all.append("{\"manifold_sn\":");
             all.append(manifoldSerial);
-            all.append(", \"stations\" : {");
+            all.append(",\"stations\":[");
 
             for (StringBuilder station: stations.values()) {
                 all.append(station);
             }
 
-            all.delete(all.length()-3, all.length()-1);
-            all.append("}}}}");
+            all.delete(all.length()-1, all.length());
+            all.append("]}");
 
             String body = all.toString();
             stations.clear();

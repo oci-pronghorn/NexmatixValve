@@ -6,13 +6,15 @@ import static com.ociweb.schema.FieldType.integer;
 import static com.ociweb.schema.FieldType.string;
 
 public class MessageScheme {
-    public static final int messageSize = 256;
+    public static final int messageSize = 512;
+    public static final int jsonMessageSize = 16384;
     public static final int stationCount = 10;
-    public static final int parseIdLimit = Math.min(8, 8);
+    public static final int parseIdLimit = Math.min(9, 9);
 
-    public static String[] patterns = new String[] {
+    public static final String[] patterns = new String[] {
             "st%u",
             "sn%u",
+            "pn\"%b\"",
             "cc%u",
             "cl%u",
             "pp%i",
@@ -21,9 +23,10 @@ public class MessageScheme {
             "in\"%b\"",
     };
 
-    public static String[] topics = new String[] {
+    public static final String[] topics = new String[] {
             "StationId",
             "SerialNumber",
+            "ProductNumber",
             "CycleCount",
             "CycleCountLimnit",
             "PressurePoint",
@@ -32,20 +35,24 @@ public class MessageScheme {
             "InputState",
     };
 
-    public static String[] jsonKeys = new String[] {
+    public static final String[] jsonKeys = new String[] {
             "sn",
             "valve_sn",
+            "valve_pn",
             "cc",
-            "limit",
+            "ccl",
             "pp",
             "p_fault",
             "leak",
             "input",
     };
 
-    public static FieldType[] types = new FieldType[] {
+    public static final String timestampJsonKey = "timestamp";
+
+    public static final FieldType[] types = new FieldType[] {
             integer,
             integer,
+            string,
             integer,
             integer,
             floatingPoint,

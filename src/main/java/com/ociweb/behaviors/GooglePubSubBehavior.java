@@ -19,19 +19,21 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import com.google.pubsub.v1.TopicName;
+
+import static com.ociweb.schema.MessageScheme.jsonMessageSize;
 
 public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListener, StartupListener, ShutdownListener {
     private final FogCommandChannel cmd;
     private final String url;
 
     public GooglePubSubBehavior(FogRuntime runtime) {
-        this.cmd = runtime.newCommandChannel(NET_REQUESTER);
-        this.cmd.ensureHTTPClientRequesting(10, 2048);
+        this.cmd = runtime.newCommandChannel();
+        this.cmd.ensureDynamicMessaging(64, jsonMessageSize);
+        //this.cmd.ensureHTTPClientRequesting(10, jsonMessageSize);
         this.url = String.format("https://pubsub.googleapis.com/v1/projects/%s/topics/%s:publish", "nexmatixmvp", "manifold-state");
     }
 
