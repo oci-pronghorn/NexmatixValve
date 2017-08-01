@@ -14,8 +14,12 @@ public class SerialSimulatorBehavior implements TimeListener {
         this.channel = runtime.newCommandChannel(SERIAL_WRITER);
     }
 
+    boolean didIt = false;
+
     @Override
     public void timeEvent(long l, int i) {
+        if (didIt) return;
+        didIt = true;
         channel.publishSerial(serialWriter -> {
             String msg = producer.next(l, i);
             System.out.println(String.format("A.%d) %d:'%s'", i, msg.length(), msg));
