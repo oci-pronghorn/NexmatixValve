@@ -6,9 +6,7 @@ import com.google.cloud.pubsub.v1.Publisher;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 
-import com.ociweb.gl.api.HTTPResponseListener;
-import com.ociweb.gl.api.HTTPResponseReader;
-import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.pipe.BlobReader;
@@ -27,7 +25,7 @@ import java.util.List;
 
 import com.google.pubsub.v1.TopicName;
 
-public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListener {
+public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListener, StartupListener, ShutdownListener {
     private final FogCommandChannel cmd;
     private final String url;
 
@@ -67,22 +65,42 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
         });
     }
 
+    private TopicName topicName = null;
+    private Publisher publisher = null;
+
+    @Override
+    public void startup() {
+        // creating publisher in constructor freezes app
+        // creating publisher here blocks for too long
+    }
+
+    @Override
+    public boolean acceptShutdown() {
+        // When finished with the publisher, shutdown to free up resources.
+        try {
+            if (publisher != null) {
+                publisher.shutdown();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
     // Must execute "gcloud auth application-default login" on command line
     // And the user you select have permissions
     private void theGoogleWay(String body) {
-
-        Publisher publisher = null;
         List<ApiFuture<String>> messageIdFutures = new ArrayList<>();
         try {
-            final TopicName topicName;
-            topicName = TopicName.create("nexmatixmvp", "manifold-state");
-
             // Create a publisher instance with default settings bound to the topic
-            publisher = Publisher.defaultBuilder(topicName).build();
-
-            List<String> messages = Collections.singletonList(body);
+            // This takes a long time!!!
+            if (topicName == null) {
+                topicName = TopicName.create("nexmatixmvp", "manifold-state");
+                publisher = Publisher.defaultBuilder(topicName).build();
+            }
 
             // schedule publishing one message at a time : messages get automatically batched
+            List<String> messages = Collections.singletonList(body);
             for (String message : messages) {
                 ByteString data = ByteString.copyFromUtf8(message);
                 PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
@@ -95,17 +113,10 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
             e.printStackTrace();
         } finally {
             // wait on any pending publish requests.
-            List<String> messageIds = null;
             try {
-                messageIds = ApiFutures.allAsList(messageIdFutures).get();
-
+                List<String> messageIds = ApiFutures.allAsList(messageIdFutures).get();
                 for (String messageId : messageIds) {
-                    System.out.println("published with message ID: " + messageId);
-                }
-
-                if (publisher != null) {
-                    // When finished with the publisher, shutdown to free up resources.
-                    publisher.shutdown();
+                    System.out.println("F) published ID: " + messageId);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
