@@ -52,10 +52,12 @@ public class NexmatixValve implements FogApp
         // Register the serial listener that chunks the messages
         runtime.registerListener(new UARTMessageWindowBehavior(runtime, "UART"));
         // Register the json converter
-        runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldSerial, "JSON")).addSubscription("UART");
+        runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldSerial, "JSON_STATUS", true)).addSubscription("UART");
+        runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldSerial, "JSON_CONFIG", false)).addSubscription("UART");
         // Register Google Pub Sub
-        runtime.registerListener(new GooglePubSubBehavior(runtime)).addSubscription("JSON");
-
+        runtime.registerListener(new GooglePubSubBehavior(runtime, "manifold-state")).addSubscription("JSON_STATUS");
+        runtime.registerListener(new GooglePubSubBehavior(runtime, "manifold-configuration")).addSubscription("JSON_CONFIG");
+/*
         // Register the listener that publishes per field in the message
         final FieldPublisherBehavior fields = new FieldPublisherBehavior(runtime, "VALUE");
         runtime.registerListener(fields).addSubscription("UART");
@@ -72,5 +74,6 @@ public class NexmatixValve implements FogApp
                 runtime.bridgeTransmission(filter.publishTopic, externalTopic, localMqttBridge); //optional 2 topics, optional transform lambda
             }
         }
+*/
     }
 }

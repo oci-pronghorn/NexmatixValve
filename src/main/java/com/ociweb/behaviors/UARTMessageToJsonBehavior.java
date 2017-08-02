@@ -18,18 +18,20 @@ import static com.ociweb.schema.MessageScheme.*;
 
 public class UARTMessageToJsonBehavior implements PubSubListener {
     private final FogCommandChannel cmd;
+    private final boolean isStatus;
     private final String manifoldSerial;
     private final String publishTopic;
     private final TrieParser parser = MessageScheme.buildParser();
     private final TrieParserReader reader = new TrieParserReader(4, true);
 
-    private final int batchCountLimit = 1;
+    private final int batchCountLimit = 5;
     private int batchCount = batchCountLimit;
 
     private Map<Integer, StringBuilder> stations = new HashMap<>();
 
-    public UARTMessageToJsonBehavior(FogRuntime runtime, String manifoldSerial, String publishTopic) {
+    public UARTMessageToJsonBehavior(FogRuntime runtime, String manifoldSerial, String publishTopic, boolean isStatus) {
         this.cmd = runtime.newCommandChannel();
+        this.isStatus = isStatus;
         this.cmd.ensureDynamicMessaging(64, jsonMessageSize);
         this.manifoldSerial = manifoldSerial;
         this.publishTopic = publishTopic;
@@ -40,9 +42,9 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
         final long timeStamp = messageReader.readLong();
         //StringBuilder a = new StringBuilder();
         //messageReader.readUTF(a);
-        //System.out.println(String.format("E) Recieved: %d:'%s'", a.length(), a.toString()));
+        //System.out.println(String.format("C) Recieved: %d:'%s'", a.length(), a.toString()));
         final short messageLength = messageReader.readShort();
-        //System.out.println("E) Length: " + messageLength);
+        //System.out.println("C) Length: " + messageLength);
         reader.parseSetup(messageReader, messageLength);
         int stationId = -1;
 
@@ -56,11 +58,14 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
             //System.out.println("E) Parsed Field: " + parsedId);
             if (parsedId == -1) {
                 if (TrieParserReader.parseSkipOne(reader) == -1) {
-                    //System.out.println("E) End of Message");
+                    //System.out.println("C) End of Message");
                     break;
                 }
             }
             else {
+                if (isStatus && !MessageScheme.statusField[parsedId]) continue;
+                if (!isStatus && !MessageScheme.configField[parsedId]) continue;
+
                 String key = MessageScheme.jsonKeys[parsedId];
                 final FieldType fieldType = MessageScheme.types[parsedId];
                 json.append("\"");
@@ -98,7 +103,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
 
         stations.put(stationId, json);
 
-        if (stations.size() > batchCount) {
+        if (stations.size() >= batchCount) {
             StringBuilder all = new StringBuilder();
             all.append("{\""+ manifoldSerialJsonKey + "\":");
             all.append(manifoldSerial);
@@ -114,7 +119,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
             String body = all.toString();
             stations.clear();
             batchCount = ThreadLocalRandom.current().nextInt(1, batchCountLimit + 1);
-            System.out.println(String.format("E) %s", body));
+            System.out.println(String.format("C.%s) %s", publishTopic, body));
             cmd.publishTopic(publishTopic, writer -> {
                 writer.writeUTF(body);
             });

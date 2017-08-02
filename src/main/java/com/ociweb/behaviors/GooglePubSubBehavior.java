@@ -1,23 +1,16 @@
 package com.ociweb.behaviors;
 
+import com.ociweb.gl.api.*;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.pronghorn.pipe.BlobReader;
+
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutures;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 
-import com.ociweb.gl.api.*;
-import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.pipe.BlobReader;
-import com.ociweb.pronghorn.util.Appendables;
-
-import javax.net.ssl.HttpsURLConnection;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,13 +21,15 @@ import static com.ociweb.schema.MessageScheme.jsonMessageSize;
 
 public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListener, StartupListener, ShutdownListener {
     private final FogCommandChannel cmd;
-    private final String url;
+    private final String publishTopic;
+    //private final String url;
 
-    public GooglePubSubBehavior(FogRuntime runtime) {
+    public GooglePubSubBehavior(FogRuntime runtime, String publishTopic) {
         this.cmd = runtime.newCommandChannel();
+        this.publishTopic = publishTopic;
         this.cmd.ensureDynamicMessaging(64, jsonMessageSize);
         //this.cmd.ensureHTTPClientRequesting(10, jsonMessageSize);
-        this.url = String.format("https://pubsub.googleapis.com/v1/projects/%s/topics/%s:publish", "nexmatixmvp", "manifold-state");
+        //this.url = String.format("https://pubsub.googleapis.com/v1/projects/%s/topics/%s:publish", "nexmatixmvp", "manifold-state");
     }
 
     @Override
@@ -47,23 +42,12 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
        // Appendables.appendBase64(builder, bytes, 0, bytes.length, Integer.MAX_VALUE);
        // builder.append("\"}]}");
        // String body = builder.toString();
-      //  System.out.println(String.format("F) %s", body));
+      //  System.out.println(String.format("D) %s", body));
 
         //theFoglightWay(body);
         //theOldWay(body);
         theGoogleWay(json);
         return true;
-    }
-
-    @Override
-    public boolean responseHTTP(HTTPResponseReader reader) {
-        return true;
-    }
-
-    private void theFoglightWay(String body) {
-        cmd.httpPost(url, 80, "", blobWriter -> {
-            blobWriter.write(body.getBytes());
-        });
     }
 
     private TopicName topicName = null;
@@ -96,7 +80,7 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
             // Create a publisher instance with default settings bound to the topic
             // This takes a long time!!!
             if (topicName == null) {
-                topicName = TopicName.create("nexmatixmvp", "manifold-state");
+                topicName = TopicName.create("nexmatixmvp", publishTopic);
                 publisher = Publisher.defaultBuilder(topicName).build();
             }
 
@@ -117,12 +101,23 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
             try {
                 List<String> messageIds = ApiFutures.allAsList(messageIdFutures).get();
                 for (String messageId : messageIds) {
-                    System.out.println("F) published ID: " + messageId);
+                    System.out.println(String.format("D.%s) published ID: %s", publishTopic, messageId));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public boolean responseHTTP(HTTPResponseReader reader) {
+        return true;
+    }
+/*
+    private void theFoglightWay(String body) {
+        cmd.httpPost(url, 80, "", blobWriter -> {
+            blobWriter.write(body.getBytes());
+        });
     }
 
     private void theOldWay(String body) {
@@ -169,4 +164,5 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
             e.printStackTrace();
         }
     }
+    */
 }

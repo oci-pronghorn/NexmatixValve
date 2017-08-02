@@ -22,6 +22,9 @@ public class DecentMessageProducer implements SerialMessageProducer {
     private final Map<Integer, Integer> cycleCounts = new HashMap<>();
     private final Map<Integer, Integer> cycleCountLimits = new HashMap<>();
 
+    private final Map<Integer, Long> fabricationDates = new HashMap<>();
+    private final Map<Integer, Long> shipmentDates = new HashMap<>();
+
     @Override
     public String next(long time, int i) {
 
@@ -49,7 +52,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 return Integer.toString(stationId);
             }
             case 1: { // SerialNumber
-                return installedValves.computeIfAbsent(stationId, k -> i).toString();
+                return installedValves.computeIfAbsent(stationId, k -> i + 100000).toString();
             }
             case 2: { // ProductNumber
                 Integer sn = installedValves.get(stationId);
@@ -97,6 +100,22 @@ public class DecentMessageProducer implements SerialMessageProducer {
             }
             case 8: { // InputState
                 return inputEnum[ThreadLocalRandom.current().nextInt(0, inputEnum.length)];
+            }
+            case 9: { // Fabrication Date
+                Long date = System.currentTimeMillis();
+                Integer sn = installedValves.get(stationId);
+                if (sn != null) {
+                    date = fabricationDates.computeIfAbsent(stationId, k -> (long)i + (long)100000);
+                }
+                return date.toString();
+            }
+            case 10: { // Shipment Date
+                Long date = System.currentTimeMillis();
+                Integer sn = installedValves.get(stationId);
+                if (sn != null) {
+                    date = shipmentDates.computeIfAbsent(sn, k -> (long)i + (long)100000);
+                }
+                return date.toString();
             }
         }
         return "0";

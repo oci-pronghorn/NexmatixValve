@@ -9,7 +9,7 @@ public class MessageScheme {
     public static final int messageSize = 512;
     public static final int jsonMessageSize = 16384;
     public static final int stationCount = 10;
-    public static final int parseIdLimit = Math.min(9, 9);
+    public static final int parseIdLimit = Math.min(11, 11);
 
     public static final String[] patterns = new String[] {
             "st%u",
@@ -21,6 +21,8 @@ public class MessageScheme {
             "pf\"%b\"",
             "ld\"%b\"",
             "in\"%b\"",
+            "fd%u",
+            "sd%u",
     };
 
     public static final String[] topics = new String[] {
@@ -33,6 +35,8 @@ public class MessageScheme {
             "PressureFault",
             "LeakDetection",
             "InputState",
+            "FabricationDate",
+            "ShipmentDate",
     };
 
     public static final String[] jsonKeys = new String[] {
@@ -45,11 +49,41 @@ public class MessageScheme {
             "p_fault",
             "leak",
             "input",
+            "fab_date",
+            "ship_date",
     };
 
     public static final String manifoldSerialJsonKey = "manifold_sn";
     public static final String timestampJsonKey = "update_time";
     public static final String stationsJsonKey = "stations";
+
+    public static final boolean[] statusField = new boolean[] {
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            false,
+    };
+
+    public static final boolean[] configField = new boolean[] {
+            true,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            true,
+    };
 
     public static final FieldType[] types = new FieldType[] {
             integer,
@@ -61,6 +95,8 @@ public class MessageScheme {
             string,
             string,
             string,
+            integer,
+            integer,
     };
 
     public static TrieParser buildParser() {
