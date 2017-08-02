@@ -41,14 +41,13 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
     public boolean message(CharSequence charSequence, BlobReader messageReader) {
         final String json = messageReader.readUTF();
 
-        StringBuilder builder = new StringBuilder();
-        builder.append("{\"messages\": [{\"attributes\": {\"key\": \"iana.org/language_tag\", \"value\": \"en\"},\"data\": \"");
-        byte[] bytes = json.getBytes();
-        Appendables.appendBase64(builder, bytes, 0, bytes.length, Integer.MAX_VALUE);
-        builder.append("\"}]}");
-        String body = builder.toString();
-
-        System.out.println(String.format("F) %s", body));
+       // StringBuilder builder = new StringBuilder();
+        //builder.append("{\"messages\": [{\"attributes\": {\"key\": \"iana.org/language_tag\", \"value\": \"en\"},\"data\": \"");
+       // byte[] bytes = json.getBytes();
+       // Appendables.appendBase64(builder, bytes, 0, bytes.length, Integer.MAX_VALUE);
+       // builder.append("\"}]}");
+       // String body = builder.toString();
+      //  System.out.println(String.format("F) %s", body));
 
         //theFoglightWay(body);
         //theOldWay(body);
