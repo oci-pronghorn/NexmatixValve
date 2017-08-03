@@ -1,9 +1,7 @@
 package com.ociweb.schema;
 import com.ociweb.pronghorn.util.TrieParser;
 
-import static com.ociweb.schema.FieldType.floatingPoint;
-import static com.ociweb.schema.FieldType.integer;
-import static com.ociweb.schema.FieldType.string;
+import static com.ociweb.schema.FieldType.*;
 
 public class MessageScheme {
     public static final int messageSize = 512;
@@ -95,8 +93,8 @@ public class MessageScheme {
             string,
             string,
             string,
-            integer,
-            integer,
+            int64,
+            int64,
     };
 
     public static TrieParser buildParser() {

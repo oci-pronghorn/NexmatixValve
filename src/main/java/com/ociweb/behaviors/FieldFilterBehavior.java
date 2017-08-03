@@ -13,6 +13,7 @@ public class FieldFilterBehavior implements PubSubListener {
     public final String publishTopic;
 
     private int intCache = Integer.MAX_VALUE;
+    private long longCache = Long.MAX_VALUE;
     private String stringCache = "";
     private double floatingPointCache = Double.MAX_VALUE;
 
@@ -32,6 +33,15 @@ public class FieldFilterBehavior implements PubSubListener {
                 System.out.println(String.format("D) Detected: %s: %d -> %d", this.publishTopic, intCache, newValue));
                 if (newValue != intCache) {
                     intCache = newValue;
+                    publish = true;
+                }
+                break;
+            }
+            case int64: {
+                long newValue = messageReader.readLong();
+                System.out.println(String.format("D) Detected: %s: %d -> %d", this.publishTopic, intCache, newValue));
+                if (newValue != intCache) {
+                    longCache = newValue;
                     publish = true;
                 }
                 break;
@@ -62,6 +72,9 @@ public class FieldFilterBehavior implements PubSubListener {
                 switch (fieldType) {
                     case integer:
                         pubSubWriter.writeInt(intCache);
+                        break;
+                    case int64:
+                        pubSubWriter.writeLong(longCache);
                         break;
                     case string:
                         pubSubWriter.writeUTF(stringCache);

@@ -81,6 +81,12 @@ public class FieldPublisherBehavior implements PubSubListener {
                     pubSubWriter.writeInt(value);
                     break;
                 }
+                case int64: {
+                    long value = TrieParserReader.capturedLongField(reader, 0);
+                    System.out.println(String.format("C) Publishing: %s) %d", topic, value));
+                    pubSubWriter.writeLong(value);
+                    break;
+                }
                 case string: {
                     TrieParserReader.writeCapturedUTF8(reader, 0, pubSubWriter);
                     System.out.println(String.format("C) Publishing: %s) '%s'", topic, "some string"));

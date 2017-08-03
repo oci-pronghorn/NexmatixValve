@@ -89,31 +89,31 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 }
                 return l.toString();
             }
-            case 5: { // PressurePoint
+            case 5: { // PressurePoint // TODO
                 return Integer.toString(parseId * i);
             }
-            case 6: { // PressureFault
+            case 6: { // PressureFault // TODO
                 return pressureFaultEnum[ThreadLocalRandom.current().nextInt(0, pressureFaultEnum.length)];
             }
-            case 7: { // LeakDetection
+            case 7: { // LeakDetection // TODO
                 return leakDetectedEnum[ThreadLocalRandom.current().nextInt(0, leakDetectedEnum.length)];
             }
-            case 8: { // InputState
+            case 8: { // InputState// TODO
                 return inputEnum[ThreadLocalRandom.current().nextInt(0, inputEnum.length)];
             }
             case 9: { // Fabrication Date
-                Long date = System.currentTimeMillis();
+                Long date = 0L;
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
-                    date = fabricationDates.computeIfAbsent(stationId, k -> (long)i + (long)100000);
+                    date = fabricationDates.computeIfAbsent(sn, k -> System.currentTimeMillis()); // TODO
                 }
                 return date.toString();
             }
             case 10: { // Shipment Date
-                Long date = System.currentTimeMillis();
+                Long date = 0L;
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
-                    date = shipmentDates.computeIfAbsent(sn, k -> (long)i + (long)100000);
+                    date = shipmentDates.computeIfAbsent(sn, k -> System.currentTimeMillis()); // TODO
                 }
                 return date.toString();
             }
