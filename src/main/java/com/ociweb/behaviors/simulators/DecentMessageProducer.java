@@ -10,9 +10,9 @@ import static com.ociweb.schema.FieldType.string;
 public class DecentMessageProducer implements SerialMessageProducer {
 
     private final static int[] installedStationIds = new int[] { 0, 3, 4, 8, 9};
-    private final static String[] inputEnum = new String[] { "A", "B", "N" };
-    private final static String[] pressureFaultEnum = new String[] { "H", "L", "N" };
-    private final static String[] leakDetectedEnum = new String[] { "P", "C", "N" };
+    private final static String[] inputEnum = new String[] { "N", "A", "B" };
+    private final static String[] pressureFaultEnum = new String[] { "N", "H", "L" };
+    private final static String[] leakDetectedEnum = new String[] { "N", "P", "C" };
 
     private final static String[] sizeEnum = new String[] { "SM" };
     private final static String[] colorEnum = new String[] { "BLU" };
@@ -21,6 +21,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
     private final Map<Integer, String> productNumbers = new HashMap<>();
     private final Map<Integer, Integer> cycleCounts = new HashMap<>();
     private final Map<Integer, Integer> cycleCountLimits = new HashMap<>();
+    private final Map<Integer, String> inputStatus = new HashMap<>();
 
     private final Map<Integer, Long> fabricationDates = new HashMap<>();
     private final Map<Integer, Long> shipmentDates = new HashMap<>();
@@ -98,8 +99,13 @@ public class DecentMessageProducer implements SerialMessageProducer {
             case 7: { // LeakDetection // TODO
                 return leakDetectedEnum[ThreadLocalRandom.current().nextInt(0, leakDetectedEnum.length)];
             }
-            case 8: { // InputState// TODO
-                return inputEnum[ThreadLocalRandom.current().nextInt(0, inputEnum.length)];
+            case 8: { // InputState
+                String e = inputEnum[0];
+                Integer sn = installedValves.get(stationId);
+                if (sn != null) {
+                    e = inputStatus.computeIfAbsent(sn, k -> inputEnum[ThreadLocalRandom.current().nextInt(0, inputEnum.length)]);
+                }
+                return e;
             }
             case 9: { // Fabrication Date
                 Long date = 0L;
