@@ -2,6 +2,7 @@ package com.ociweb.behaviors.simulators;
 
 import com.ociweb.schema.MessageScheme;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -94,9 +95,11 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 return Integer.toString(parseId * i);
             }
             case 6: { // PressureFault // TODO
+                String e = pressureFaultEnum[0];
                 return pressureFaultEnum[ThreadLocalRandom.current().nextInt(0, pressureFaultEnum.length)];
             }
             case 7: { // LeakDetection // TODO
+                String e = leakDetectedEnum[0];
                 return leakDetectedEnum[ThreadLocalRandom.current().nextInt(0, leakDetectedEnum.length)];
             }
             case 8: { // InputState
@@ -111,7 +114,11 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 Long date = 0L;
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
-                    date = fabricationDates.computeIfAbsent(sn, k -> System.currentTimeMillis()); // TODO
+                    date = fabricationDates.computeIfAbsent(sn, k -> {
+                        Date d = new Date(2016, 5, 13);
+                        d.setDate(d.getDate() + ThreadLocalRandom.current().nextInt(-5, 6));
+                        return d.getTime();
+                    });
                 }
                 return date.toString();
             }
@@ -119,7 +126,11 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 Long date = 0L;
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
-                    date = shipmentDates.computeIfAbsent(sn, k -> System.currentTimeMillis()); // TODO
+                    date = shipmentDates.computeIfAbsent(sn, k -> {
+                        Date d = new Date(2016, 6, 13);
+                        d.setDate(d.getDate() + ThreadLocalRandom.current().nextInt(-5, 6));
+                        return d.getTime();
+                    });
                 }
                 return date.toString();
             }
