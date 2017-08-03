@@ -22,11 +22,14 @@ import static com.ociweb.schema.MessageScheme.jsonMessageSize;
 public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListener, StartupListener, ShutdownListener {
     private final FogCommandChannel cmd;
     private final String publishTopic;
+    private final int interval;
+    private int counter = 0;
     //private final String url;
 
-    public GooglePubSubBehavior(FogRuntime runtime, String publishTopic) {
+    public GooglePubSubBehavior(FogRuntime runtime, String publishTopic, int interval) {
         this.cmd = runtime.newCommandChannel();
         this.publishTopic = publishTopic;
+        this.interval = interval;
         this.cmd.ensureDynamicMessaging(64, jsonMessageSize);
         //this.cmd.ensureHTTPClientRequesting(10, jsonMessageSize);
         //this.url = String.format("https://pubsub.googleapis.com/v1/projects/%s/topics/%s:publish", "nexmatixmvp", "manifold-state");
@@ -46,7 +49,13 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
 
         //theFoglightWay(body);
         //theOldWay(body);
-        theGoogleWay(json);
+        if (counter % interval == 0) {
+            theGoogleWay(json);
+        }
+        else {
+            System.out.println(String.format("D.%s.%d) skipped", publishTopic, counter));
+        }
+        counter++;
         return true;
     }
 
@@ -101,7 +110,7 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
             try {
                 List<String> messageIds = ApiFutures.allAsList(messageIdFutures).get();
                 for (String messageId : messageIds) {
-                    System.out.println(String.format("D.%s) published ID: %s", publishTopic, messageId));
+                    System.out.println(String.format("D.%s.%d) published ID: %s", publishTopic, counter, messageId));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
