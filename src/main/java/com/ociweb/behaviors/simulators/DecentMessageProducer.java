@@ -10,7 +10,7 @@ import static com.ociweb.schema.FieldType.string;
 
 public class DecentMessageProducer implements SerialMessageProducer {
 
-    private final static int[] installedStationIds = new int[] { 0, 3, 4, 8, 9};
+    private final static int[] installedStationIds = new int[] { 0, 3, 4, 8, 9 };
     private final static String[] inputEnum = new String[] { "N", "A", "B" };
     private final static String[] pressureFaultEnum = new String[] { "N", "H", "L" };
     private final static String[] leakDetectedEnum = new String[] { "N", "P", "C" };
@@ -87,7 +87,18 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 if (sn != null) {
                     c = cycleCounts.get(sn);
                     if (c == null) {
-                        c = 0; // TODO make some valves close to limit
+                        if (stationId == installedStationIds[1]) {
+                            Integer ccl = cycleCountLimits.get(sn);
+                            if (ccl != null) {
+                                c = ccl - 10;
+                            }
+                            else {
+                                c = 0;
+                            }
+                        }
+                        else {
+                            c = 0;
+                        }
                     }
                     c += 1;
                     cycleCounts.put(sn, c);
