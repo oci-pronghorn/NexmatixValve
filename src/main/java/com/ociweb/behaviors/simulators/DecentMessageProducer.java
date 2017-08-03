@@ -27,6 +27,9 @@ public class DecentMessageProducer implements SerialMessageProducer {
     private final Map<Integer, Long> fabricationDates = new HashMap<>();
     private final Map<Integer, Long> shipmentDates = new HashMap<>();
 
+    private static final double minPsi = 0.0;
+    private static final double maxPsi = 120.0;
+
     @Override
     public String next(long time, int i) {
 
@@ -69,20 +72,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                                     0));
                 }
             }
-            case 3: { // CycleCount
-                Integer c = 0;
-                Integer sn = installedValves.get(stationId);
-                if (sn != null) {
-                    c = cycleCounts.get(sn);
-                    if (c == null) {
-                        c = 0;
-                    }
-                    c += 1;
-                    cycleCounts.put(sn, c);
-                }
-                return c.toString();
-            }
-            case 4: { // CycleCountLimnit
+            case 3: { // CycleCountLimnit
                 Integer l = 0;
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
@@ -91,15 +81,32 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 }
                 return l.toString();
             }
-            case 5: { // PressurePoint // TODO
-                return Integer.toString(parseId * i);
+            case 4: { // CycleCount
+                Integer c = 0;
+                Integer sn = installedValves.get(stationId);
+                if (sn != null) {
+                    c = cycleCounts.get(sn);
+                    if (c == null) {
+                        c = 0; // TODO make some valves close to limit
+                    }
+                    c += 1;
+                    cycleCounts.put(sn, c);
+                }
+                return c.toString();
+            }
+            case 5: { // PressurePoint
+                double v = time % (Math.PI * 2.0);
+                double s = Math.sin(v);
+                double c = (s + 1.0) * 0.5;
+                double r = minPsi + ((maxPsi - minPsi) * c);
+                return Double.toString(r);
             }
             case 6: { // PressureFault // TODO
-                String e = pressureFaultEnum[0];
+                //String e = pressureFaultEnum[0];
                 return pressureFaultEnum[ThreadLocalRandom.current().nextInt(0, pressureFaultEnum.length)];
             }
             case 7: { // LeakDetection // TODO
-                String e = leakDetectedEnum[0];
+                //String e = leakDetectedEnum[0];
                 return leakDetectedEnum[ThreadLocalRandom.current().nextInt(0, leakDetectedEnum.length)];
             }
             case 8: { // InputState
