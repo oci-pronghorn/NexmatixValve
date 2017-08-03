@@ -27,6 +27,9 @@ public class DecentMessageProducer implements SerialMessageProducer {
     private final Map<Integer, Long> fabricationDates = new HashMap<>();
     private final Map<Integer, Long> shipmentDates = new HashMap<>();
 
+    private final Map<Integer, Integer> pressureFaults = new HashMap<>();
+    private final Map<Integer, Integer> leakFaults = new HashMap<>();
+
     private static final double minPsi = 0.0;
     private static final double maxPsi = 120.0;
 
@@ -106,19 +109,62 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 return c.toString();
             }
             case 5: { // PressurePoint
+                /* TODO:
+                Pretty much a square wave. As the valve cycles, the pressure reading goes from a minimum value very close
+                to 0 to a maximum value of whatever the customer's compressor is set to (typically 70 to 110 psig is what
+                most manufacturers use to operate their machines). Because we are reading data every 5 seconds and the
+                valves move so much faster than that, it is unlikely that we capture a point that is not in one of those
+                extremes.
+                So if you want to create convincing fake data, you could generate a sequence of values that are either in
+                the minimum, close to zero, or maximum, close to whatever you chose to use as line pressure.
+                After MVP we will explore the possibility of presenting pressure profiles with a much finer detail.
+                 */
                 double v = time % (Math.PI * 2.0);
                 double s = Math.sin(v);
                 double c = (s + 1.0) * 0.5;
                 double r = minPsi + ((maxPsi - minPsi) * c);
                 return Double.toString(r);
             }
-            case 6: { // PressureFault // TODO
-                //String e = pressureFaultEnum[0];
-                return pressureFaultEnum[ThreadLocalRandom.current().nextInt(0, pressureFaultEnum.length)];
+            case 6: { // PressureFault
+                int idx = 0;
+                if (stationId == installedStationIds[2]) {
+                    boolean flipIt = i % 4 == 0;
+                    Integer sn = installedValves.get(stationId);
+                    if (sn != null) {
+                        idx = pressureFaults.computeIfAbsent(sn, k -> 0);
+                        if (flipIt) {
+                            if (idx != 0) {
+                                idx = 0;
+                            }
+                            else {
+                                idx = ThreadLocalRandom.current().nextInt(1, pressureFaultEnum.length);
+                            }
+                            pressureFaults.put(sn, idx);
+                        }
+                        return pressureFaultEnum[idx];
+                    }
+                }
+                return pressureFaultEnum[idx];
             }
-            case 7: { // LeakDetection // TODO
-                //String e = leakDetectedEnum[0];
-                return leakDetectedEnum[ThreadLocalRandom.current().nextInt(0, leakDetectedEnum.length)];
+            case 7: { // LeakDetection
+                int idx = 0;
+                if (stationId == installedStationIds[3]) {
+                    boolean flipIt = i % 4 == 0;
+                    Integer sn = installedValves.get(stationId);
+                    if (sn != null) {
+                        idx = leakFaults.computeIfAbsent(sn, k -> 0);
+                        if (flipIt) {
+                            if (idx != 0) {
+                                idx = 0;
+                            }
+                            else {
+                                idx = ThreadLocalRandom.current().nextInt(1, leakDetectedEnum.length);
+                            }
+                            leakFaults.put(sn, idx);
+                        }
+                    }
+                }
+                return leakDetectedEnum[idx];
             }
             case 8: { // InputState
                 String e = inputEnum[0];
