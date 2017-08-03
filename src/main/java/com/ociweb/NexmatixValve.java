@@ -32,12 +32,12 @@ public class NexmatixValve implements FogApp
                 .subscriptionQoS(1)
                 .keepAliveSeconds(10);
 */
-        isSim = builder.hasArgument("--sim", "-s");
+        isSim = true; //builder.hasArgument("--sim", "-s");
         if (isSim) {
             builder.setTimerPulseRate(1000);
         }
 
-        builder.enableTelemetry();
+        //builder.enableTelemetry();
     }
 
     @Override
