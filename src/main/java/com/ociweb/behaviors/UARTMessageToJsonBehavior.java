@@ -52,6 +52,8 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
 
         json.append("{");
 
+        long workAround = System.currentTimeMillis();
+
         while (true) {
             // Why return long only to down cast it to int for capture methods?
             int parsedId = (int) TrieParserReader.parseNext(reader, parser);
@@ -83,6 +85,16 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                     }
                     case int64: {
                         long value = TrieParserReader.capturedLongField(reader, 0);
+                        if (value < -1) {
+                            if (parsedId == 10) {
+                                value = workAround;
+                            }
+                        }
+                        else {
+                            if (parsedId == 9) {
+                                workAround = value;
+                            }
+                        }
                         json.append(value);
                         json.append(",");
                         break;
