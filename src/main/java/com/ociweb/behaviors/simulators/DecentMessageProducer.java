@@ -60,7 +60,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 return Integer.toString(stationId);
             }
             case 1: { // SerialNumber
-                return installedValves.computeIfAbsent(stationId, k -> i + 100000).toString();
+                return installedValves.computeIfAbsent(stationId, k -> stationId + 100000).toString();
             }
             case 2: { // ProductNumber
                 Integer sn = installedValves.get(stationId);
@@ -193,6 +193,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                     date = shipmentDates.computeIfAbsent(sn, k -> {
                         Date d = new Date(2016, 6, 13);
                         d.setDate(d.getDate() + ThreadLocalRandom.current().nextInt(-5, 6));
+                        //Returns the number of milliseconds since January 1, 1970, 00:00:00 GMT
                         return d.getTime();
                     });
                 }

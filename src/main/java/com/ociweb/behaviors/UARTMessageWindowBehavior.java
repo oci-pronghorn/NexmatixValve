@@ -35,6 +35,7 @@ public class UARTMessageWindowBehavior implements SerialListener {
         int begin = -1;
         for (int s = 0; s < len; s++) {
             if (buffer[s] == '[') {
+                // the difference, measured in milliseconds, between the current time and midnight, January 1, 1970 UTC.
                 timeStamp = System.currentTimeMillis();
                 begin = s;
                 break;
