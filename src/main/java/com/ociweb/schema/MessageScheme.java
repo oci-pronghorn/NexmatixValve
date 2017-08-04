@@ -93,8 +93,8 @@ public class MessageScheme {
             string,
             string,
             string,
-            integer,
-            integer,
+            int64,
+            int64,
     };
 
     public static TrieParser buildParser() {

@@ -24,8 +24,8 @@ public class DecentMessageProducer implements SerialMessageProducer {
     private final Map<Integer, Integer> cycleCountLimits = new HashMap<>();
     private final Map<Integer, String> inputStatus = new HashMap<>();
 
-    private final Map<Integer, Integer> fabricationDates = new HashMap<>();
-    private final Map<Integer, Integer> shipmentDates = new HashMap<>();
+    private final Map<Integer, Long> fabricationDates = new HashMap<>();
+    private final Map<Integer, Long> shipmentDates = new HashMap<>();
 
     private final Map<Integer, Integer> pressureFaults = new HashMap<>();
     private final Map<Integer, Integer> leakFaults = new HashMap<>();
@@ -175,24 +175,28 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 return e;
             }
             case 9: { // Fabrication Date
-                Integer daysPastY2K = 0;
+                Long date = 0L;
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
-                    daysPastY2K = fabricationDates.computeIfAbsent(sn, k -> {
-                        return 6424 - 30 + ThreadLocalRandom.current().nextInt(-5, 6);
+                    date = fabricationDates.computeIfAbsent(sn, k -> {
+                        Date d = new Date(2016, 5, 13);
+                        d.setDate(d.getDate() + ThreadLocalRandom.current().nextInt(-5, 6));
+                        return d.getTime();
                     });
                 }
-                return daysPastY2K.toString();
+                return date.toString();
             }
             case 10: { // Shipment Date
-                Integer daysPastY2K = 0;
+                Long date = 0L;
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
-                    daysPastY2K = shipmentDates.computeIfAbsent(sn, k -> {
-                        return 6424 - 10 + ThreadLocalRandom.current().nextInt(-5, 6);
+                    date = shipmentDates.computeIfAbsent(sn, k -> {
+                        Date d = new Date(2016, 6, 13);
+                        d.setDate(d.getDate() + ThreadLocalRandom.current().nextInt(-5, 6));
+                        return d.getTime();
                     });
                 }
-                return daysPastY2K.toString();
+                return date.toString();
             }
         }
         return "0";
