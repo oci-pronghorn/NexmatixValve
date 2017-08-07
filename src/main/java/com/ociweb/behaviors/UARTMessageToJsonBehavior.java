@@ -76,11 +76,12 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                 switch (fieldType) {
                     case integer: {
                         int value = (int) TrieParserReader.capturedLongField(reader, 0);
-                        json.append(value);
-                        json.append(",");
                         if (parsedId == 0) {
+                            value = value + 1;
                             stationId = value;
                         }
+                        json.append(value);
+                        json.append(",");
                         break;
                     }
                     case int64: {
