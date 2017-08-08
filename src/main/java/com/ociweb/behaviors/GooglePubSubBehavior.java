@@ -21,6 +21,7 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
     private final String publishTopic;
     private final int interval;
     private int counter = 0;
+    private long lastTime = System.currentTimeMillis();
     //private final String url;
 
     public GooglePubSubBehavior(FogRuntime runtime, String publishTopic, int interval) {
@@ -47,8 +48,11 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
         //theFoglightWay(body);
         //theOldWay(body);
         if (counter % interval == 0) {
+            long thisTime = System.currentTimeMillis();
+            long duration = (thisTime - lastTime);
+            lastTime = thisTime;
             theGoogleWay(json);
-            System.out.println(String.format("D.%s.%d) sent", publishTopic, counter));
+            System.out.println(String.format("D.%s.%d) sent %d", publishTopic, counter, duration));
         }
         else {
             System.out.println(String.format("D.%s.%d) skipped", publishTopic, counter));
