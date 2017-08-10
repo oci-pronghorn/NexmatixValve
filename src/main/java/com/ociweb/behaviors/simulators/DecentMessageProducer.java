@@ -41,12 +41,12 @@ public class DecentMessageProducer implements SerialMessageProducer {
     public DecentMessageProducer(int manifoldNumber) {
         this.manifoldNumber = manifoldNumber;
         installedStationIds = new ArrayList<>();
-        final int maxStations = 1; // stationCount;
+        final int maxStations = stationCount;
         for (int i = 0; i < maxStations; i++) {
-            //boolean isInstalled = ThreadLocalRandom.current().nextInt(0, 2) == 1;
-            //if (isInstalled) {
+            boolean isInstalled = ThreadLocalRandom.current().nextInt(0, 2) == 1;
+            if (isInstalled) {
                 installedStationIds.add(i);
-            //}
+            }
         }
 
         this.cfIdx = ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
@@ -62,7 +62,8 @@ public class DecentMessageProducer implements SerialMessageProducer {
     public String next(long time, int i) {
 
         StringBuilder s = new StringBuilder("[");
-        int stationId = installedStationIds.get(ThreadLocalRandom.current().nextInt(0, installedStationIds.size()));
+        final int idx = (i + installedStationIds.size()) % installedStationIds.size(); ////ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
+        int stationId = installedStationIds.get(idx);
 
         for (int parseId = 0; parseId < MessageScheme.parseIdLimit; parseId++) {
             MsgField msgField = MessageScheme.messages[parseId];
