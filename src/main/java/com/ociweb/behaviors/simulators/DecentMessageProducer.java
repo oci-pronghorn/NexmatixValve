@@ -1,6 +1,7 @@
 package com.ociweb.behaviors.simulators;
 
 import com.ociweb.schema.MessageScheme;
+import com.ociweb.schema.MsgField;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -40,16 +41,21 @@ public class DecentMessageProducer implements SerialMessageProducer {
     public DecentMessageProducer(int manifoldNumber) {
         this.manifoldNumber = manifoldNumber;
         installedStationIds = new ArrayList<>();
-        for (int i = 0; i < stationCount; i++) {
-            boolean isInstalled = ThreadLocalRandom.current().nextInt(0, 2) == 1;
-            if (isInstalled) {
+        final int maxStations = 1; // stationCount;
+        for (int i = 0; i < maxStations; i++) {
+            //boolean isInstalled = ThreadLocalRandom.current().nextInt(0, 2) == 1;
+            //if (isInstalled) {
                 installedStationIds.add(i);
-            }
+            //}
         }
 
         this.cfIdx = ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
         this.pfIdx = ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
         this.lfIdx = ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
+    }
+
+    public int getInstalledCount() {
+        return installedStationIds.size();
     }
 
     @Override
@@ -59,9 +65,10 @@ public class DecentMessageProducer implements SerialMessageProducer {
         int stationId = installedStationIds.get(ThreadLocalRandom.current().nextInt(0, installedStationIds.size()));
 
         for (int parseId = 0; parseId < MessageScheme.parseIdLimit; parseId++) {
-            String value = MessageScheme.patterns[parseId].substring(0, 2);
+            MsgField msgField = MessageScheme.messages[parseId];
+            String value = msgField.key;
             String datum = calcValue(time, i, parseId, stationId);
-            if (MessageScheme.types[parseId] == string) {
+            if (msgField.type == string) {
                 value += "\"" + datum + "\"";
             }
             else {
@@ -74,14 +81,16 @@ public class DecentMessageProducer implements SerialMessageProducer {
     }
 
     private String calcValue(long time, int i, int parseId, int stationId) {
-        switch (parseId) {
-            case 0: { // StationId
+        MsgField msgField = MessageScheme.messages[parseId];
+
+        switch (msgField.key) {
+            case "st": { // StationId
                 return Integer.toString(stationId);
             }
-            case 1: { // SerialNumber
+            case "sn": { // SerialNumber
                 return installedValves.computeIfAbsent(stationId, k -> (manifoldNumber * 1000) + (stationId * 10)).toString();
             }
-            case 2: { // ProductNumber
+            case "pn": { // ProductNumber
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
                     return productNumbers.computeIfAbsent(sn, k ->
@@ -94,7 +103,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                                     0));
                 }
             }
-            case 3: { // CycleCountLimnit
+            case "cl": { // CycleCountLimnit
                 Integer l = 0;
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
@@ -103,7 +112,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 }
                 return l.toString();
             }
-            case 4: { // CycleCount
+            case "cc": { // CycleCount
                 Integer c = 0;
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
@@ -127,7 +136,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 }
                 return c.toString();
             }
-            case 5: { // PressurePoint
+            case "pp": { // PressurePoint
                 /* TODO:
                 Pretty much a square wave. As the valve cycles, the pressure reading goes from a minimum value very close
                 to 0 to a maximum value of whatever the customer's compressor is set to (typically 70 to 110 psig is what
@@ -144,7 +153,34 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 double r = minPsi + ((maxPsi - minPsi) * c);
                 return Double.toString(r);
             }
-            case 6: { // PressureFault
+            case "fd": { // Fabrication Date
+                Long date = 0L;
+                Integer sn = installedValves.get(stationId);
+                if (sn != null) {
+                    date = fabricationDates.computeIfAbsent(sn, k -> {
+                        //Date d = new Date(2016, 5, 13);
+                        //d.setDate(d.getDate() + ThreadLocalRandom.current().nextInt(-5, 6));
+                        //return d.getTime();
+                        return System.currentTimeMillis();
+                    });
+                }
+                return date.toString();
+            }
+            case "sd": { // Shipment Date
+                Long date = 0L;
+                Integer sn = installedValves.get(stationId);
+                if (sn != null) {
+                    date = shipmentDates.computeIfAbsent(sn, k -> {
+                        //Date d = new Date(2016, 6, 13);
+                        //d.setDate(d.getDate() + ThreadLocalRandom.current().nextInt(-5, 6));
+                        //Returns the number of milliseconds since January 1, 1970, 00:00:00 GMT
+                        //return d.getTime();
+                        return System.currentTimeMillis();
+                    });
+                }
+                return date.toString();
+            }
+            case "pf": { // PressureFault
                 int idx = 0;
                 if (stationId == installedStationIds.get(pfIdx)) {
                     boolean flipIt = i % 4 == 0;
@@ -165,7 +201,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 }
                 return pressureFaultEnum[idx];
             }
-            case 7: { // LeakDetection
+            case "ld": { // LeakDetection
                 int idx = 0;
                 if (stationId == installedStationIds.get(lfIdx)) {
                     boolean flipIt = i % 4 == 0;
@@ -185,38 +221,13 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 }
                 return leakDetectedEnum[idx];
             }
-            case 8: { // InputState
+            case "in": { // InputState
                 String e = inputEnum[0];
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
                     e = inputStatus.computeIfAbsent(sn, k -> inputEnum[ThreadLocalRandom.current().nextInt(0, inputEnum.length)]);
                 }
                 return e;
-            }
-            case 9: { // Fabrication Date
-                Long date = 0L;
-                Integer sn = installedValves.get(stationId);
-                if (sn != null) {
-                    date = fabricationDates.computeIfAbsent(sn, k -> {
-                        Date d = new Date(2016, 5, 13);
-                        d.setDate(d.getDate() + ThreadLocalRandom.current().nextInt(-5, 6));
-                        return d.getTime();
-                    });
-                }
-                return date.toString();
-            }
-            case 10: { // Shipment Date
-                Long date = 0L;
-                Integer sn = installedValves.get(stationId);
-                if (sn != null) {
-                    date = shipmentDates.computeIfAbsent(sn, k -> {
-                        Date d = new Date(2016, 6, 13);
-                        d.setDate(d.getDate() + ThreadLocalRandom.current().nextInt(-5, 6));
-                        //Returns the number of milliseconds since January 1, 1970, 00:00:00 GMT
-                        return d.getTime();
-                    });
-                }
-                return date.toString();
             }
         }
         return "0";

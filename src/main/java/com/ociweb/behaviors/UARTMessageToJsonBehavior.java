@@ -1,7 +1,5 @@
 package com.ociweb.behaviors;
 
-
-import com.ociweb.gl.api.GreenTokenMap;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -10,6 +8,7 @@ import com.ociweb.pronghorn.util.TrieParser;
 import com.ociweb.pronghorn.util.TrieParserReader;
 import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
+import com.ociweb.schema.MsgField;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,17 +24,19 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
     private final TrieParser parser = MessageScheme.buildParser();
     private final TrieParserReader reader = new TrieParserReader(4, true);
 
-    private final int batchCountLimit = 5;
-    private int batchCount = batchCountLimit;
+    private final int batchCountLimit;
+    private int batchCount;
 
     private Map<Integer, StringBuilder> stations = new HashMap<>();
 
-    public UARTMessageToJsonBehavior(FogRuntime runtime, int manifoldNumber, String publishTopic, boolean isStatus) {
+    public UARTMessageToJsonBehavior(FogRuntime runtime, int manifoldNumber, String publishTopic, boolean isStatus, int batchCountLimit) {
         this.cmd = runtime.newCommandChannel();
         this.isStatus = isStatus;
         this.cmd.ensureDynamicMessaging(64, jsonMessageSize);
         this.manifoldNumber = manifoldNumber;
         this.publishTopic = publishTopic;
+        this.batchCountLimit = batchCountLimit;
+        this.batchCount = batchCountLimit;
     }
 
     @Override
@@ -64,11 +65,12 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                 }
             }
             else {
-                if (isStatus && !MessageScheme.statusField[parsedId]) continue;
-                if (!isStatus && !MessageScheme.configField[parsedId]) continue;
+                MsgField msgField = MessageScheme.messages[parsedId];
+                if (isStatus && !msgField.isStatus) continue;
+                if (!isStatus && !msgField.isConfig) continue;
 
-                String key = MessageScheme.jsonKeys[parsedId];
-                final FieldType fieldType = MessageScheme.types[parsedId];
+                String key = msgField.jsonKey;
+                final FieldType fieldType = msgField.type;
                 json.append("\"");
                 json.append(key);
                 json.append("\":");
@@ -85,7 +87,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                     }
                     case int64: {
                         long value = TrieParserReader.capturedLongField(reader, 0);
-                        json.append(value);
+                        json.append(0/*value*/);
                         json.append(",");
                         break;
                     }
@@ -97,7 +99,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                         break;
                     }
                     case floatingPoint: {
-                        double value = (double) TrieParserReader.capturedLongField(reader, 0);
+                        double value = (double) TrieParserReader.capturedDecimalMField(reader, 0);
                         json.append(value);
                         json.append(",");
                         break;

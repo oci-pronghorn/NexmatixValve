@@ -20,13 +20,14 @@ public class NexmatixValve implements FogApp
         final int manifoldNumber = Integer.parseInt(runtime.getArgumentValue("--manifold", "-m", "1"));
 
         // Register the serial simulator
-        SerialMessageProducer producer = new DecentMessageProducer(manifoldNumber);
+        DecentMessageProducer producer = new DecentMessageProducer(manifoldNumber);
+        int installedCount = producer.getInstalledCount();
         runtime.registerListener(new SerialSimulatorBehavior(runtime, producer));
         // Register the serial listener that chunks the messages
         runtime.registerListener(new UARTMessageWindowBehavior(runtime, "UART"));
         // Register the json converter
-        runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_STATUS", true)).addSubscription("UART");
-        runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_CONFIG", false)).addSubscription("UART");
+        runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_STATUS", true, installedCount)).addSubscription("UART");
+        runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_CONFIG", false, installedCount)).addSubscription("UART");
         // Register Google Pub Sub
         runtime.registerListener(new GooglePubSubBehavior(runtime, "manifold-state", 1)).addSubscription("JSON_STATUS");
         runtime.registerListener(new GooglePubSubBehavior(runtime, "manifold-configuration", 60)).addSubscription("JSON_CONFIG");

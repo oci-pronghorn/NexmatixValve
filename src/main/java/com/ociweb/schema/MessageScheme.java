@@ -9,78 +9,18 @@ public class MessageScheme {
     public static final int stationCount = 10;
     public static final int parseIdLimit = Math.min(11, 11);
 
-    public static final String[] patterns = new String[] {
-            "st%u",
-            "sn%u",
-            "pn\"%b\"",
-            "cl%u",
-            "cc%u",
-            "pp%i",
-            "fd%u",
-            "sd%u",
-            "pf\"%b\"",
-            "ld\"%b\"",
-            "in\"%b\"",
-    };
-
-    public static final String[] jsonKeys = new String[] {
-            "station_num",
-            "valve_sn",
-            "sku",
-            "ccl",
-            "cc",
-            "pp",
-            "fab_date",
-            "ship_date",
-            "p_fault",
-            "leak",
-            "input",
-    };
-
-    public static final String manifoldSerialJsonKey = "manifold_sn";
-    public static final String timestampJsonKey = "timestamp";
-    public static final String stationsJsonKey = "stations";
-
-    public static final boolean[] statusField = new boolean[] {
-            true,
-            true,
-            false,
-            true,
-            true,
-            true,
-            false,
-            false,
-            true,
-            true,
-            true,
-    };
-
-    public static final boolean[] configField = new boolean[] {
-            true,
-            true,
-            true,
-            true,
-            false,
-            false,
-            true,
-            true,
-            false,
-            false,
-            false,
-    };
-
-    public static final FieldType[] types = new FieldType[] {
-            integer,
-            integer,
-            string,
-            integer,
-            integer,
-            floatingPoint,
-            int64,
-            int64,
-            string,
-            string,
-            string,
+    public static final MsgField[] messages = new MsgField[] {
+            new MsgField("st", integer,"station_num", true, true),
+            new MsgField("sn", integer,"valve_sn", true, true),
+            new MsgField("cl", integer,"ccl", true, true),
+            new MsgField("cc", integer,"cc", true, false),
+            new MsgField("pp", floatingPoint,"pp", true, false),
+            new MsgField("fd", int64,"fab_date", false, true),
+            new MsgField("sd", int64,"ship_date", false, true),
+            new MsgField("pf", string,"p_fault", true, false),
+            new MsgField("ld", string,"leak", true, false),
+            new MsgField("in", string,"input", true, false),
+            new MsgField("pn", string,"sku", false, true),
     };
 
     public static TrieParser buildParser() {
@@ -88,8 +28,13 @@ public class MessageScheme {
         tp.setMaxNumericLengthCapturable(16);
         tp.setMaxBytesCapturable(36);
         for (int i = 0; i < parseIdLimit; i++) {
-            tp.setUTF8Value(patterns[i], i);
+            final String pattern = messages[i].getPattern();
+            tp.setUTF8Value(pattern, i);
         }
         return tp;
     }
+
+    public static final String manifoldSerialJsonKey = "manifold_sn";
+    public static final String timestampJsonKey = "timestamp";
+    public static final String stationsJsonKey = "stations";
 }

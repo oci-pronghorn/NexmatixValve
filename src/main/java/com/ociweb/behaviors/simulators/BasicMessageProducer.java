@@ -1,6 +1,7 @@
 package com.ociweb.behaviors.simulators;
 
 import com.ociweb.schema.MessageScheme;
+import com.ociweb.schema.MsgField;
 
 import static com.ociweb.schema.FieldType.string;
 
@@ -9,8 +10,9 @@ class BasicMessageProducer implements SerialMessageProducer {
     private static String completeMessage() {
         StringBuilder s = new StringBuilder("[");
         for (int parseId = 0; parseId < MessageScheme.parseIdLimit; parseId++) {
-            String value = MessageScheme.patterns[parseId].substring(0, 2);
-            if (MessageScheme.types[parseId] == string) {
+            MsgField msgField = MessageScheme.messages[parseId];
+            String value = msgField.key;
+            if (msgField.type == string) {
                 value += "\"" + (parseId * 10) + "\"";
             }
             else {
