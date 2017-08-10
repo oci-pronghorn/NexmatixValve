@@ -10,6 +10,8 @@ import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
 import com.ociweb.schema.MsgField;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -41,6 +43,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
 
     @Override
     public boolean message(CharSequence charSequence, BlobReader messageReader) {
+        NumberFormat formatter = new DecimalFormat("#0.0000");
         final long timeStamp = messageReader.readLong();
         //StringBuilder a = new StringBuilder();
         //messageReader.readUTF(a);
@@ -86,6 +89,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                         break;
                     }
                     case int64: {
+                        // Coming out bad
                         long value = TrieParserReader.capturedLongField(reader, 0);
                         json.append(0/*value*/);
                         json.append(",");
@@ -99,8 +103,9 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                         break;
                     }
                     case floatingPoint: {
-                        double value = (double) TrieParserReader.capturedDecimalMField(reader, 0);
-                        json.append(value);
+                        // Not a decimal - this truncates
+                        double value = (double) TrieParserReader.capturedLongField(reader, 0);
+                        json.append(formatter.format(value));
                         json.append(",");
                         break;
                     }
