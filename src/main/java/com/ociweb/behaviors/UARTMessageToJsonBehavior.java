@@ -1,6 +1,7 @@
 package com.ociweb.behaviors;
 
 
+import com.ociweb.gl.api.GreenTokenMap;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -19,7 +20,7 @@ import static com.ociweb.schema.MessageScheme.*;
 public class UARTMessageToJsonBehavior implements PubSubListener {
     private final FogCommandChannel cmd;
     private final boolean isStatus;
-    private final String manifoldSerial;
+    private final int manifoldNumber;
     private final String publishTopic;
     private final TrieParser parser = MessageScheme.buildParser();
     private final TrieParserReader reader = new TrieParserReader(4, true);
@@ -29,11 +30,11 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
 
     private Map<Integer, StringBuilder> stations = new HashMap<>();
 
-    public UARTMessageToJsonBehavior(FogRuntime runtime, String manifoldSerial, String publishTopic, boolean isStatus) {
+    public UARTMessageToJsonBehavior(FogRuntime runtime, int manifoldNumber, String publishTopic, boolean isStatus) {
         this.cmd = runtime.newCommandChannel();
         this.isStatus = isStatus;
         this.cmd.ensureDynamicMessaging(64, jsonMessageSize);
-        this.manifoldSerial = manifoldSerial;
+        this.manifoldNumber = manifoldNumber;
         this.publishTopic = publishTopic;
     }
 
@@ -51,8 +52,6 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
         StringBuilder json = new StringBuilder();
 
         json.append("{");
-
-        long workAround = System.currentTimeMillis();
 
         while (true) {
             // Why return long only to down cast it to int for capture methods?
@@ -86,16 +85,6 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                     }
                     case int64: {
                         long value = TrieParserReader.capturedLongField(reader, 0);
-                        if (value < -1) {
-                            if (parsedId == 10) {
-                                value = workAround;
-                            }
-                        }
-                        else {
-                            if (parsedId == 9) {
-                                workAround = value;
-                            }
-                        }
                         json.append(value);
                         json.append(",");
                         break;
@@ -116,8 +105,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                 }
             }
         }
-        json.append("\"" + timestampJsonKey + "\":");
-        json.append(timeStamp);
+        json.delete(json.length()-1, json.length());
         json.append("},");
 
         stations.put(stationId, json);
@@ -125,7 +113,9 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
         if (stations.size() >= batchCount) {
             StringBuilder all = new StringBuilder();
             all.append("{\""+ manifoldSerialJsonKey + "\":");
-            all.append(manifoldSerial);
+            all.append(manifoldNumber);
+            all.append(",\"" + timestampJsonKey + "\":");
+            all.append(timeStamp);
             all.append(",\"" + stationsJsonKey + "\":[");
 
             for (StringBuilder station: stations.values()) {

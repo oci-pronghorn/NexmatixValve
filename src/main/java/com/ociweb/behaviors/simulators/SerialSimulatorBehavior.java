@@ -8,9 +8,10 @@ import static com.ociweb.iot.maker.FogCommandChannel.SERIAL_WRITER;
 
 public class SerialSimulatorBehavior implements TimeListener {
     private final FogCommandChannel channel;
-    private final SerialMessageProducer producer = new DecentMessageProducer();
+    private final SerialMessageProducer producer;
 
-    public SerialSimulatorBehavior(FogRuntime runtime) {
+    public SerialSimulatorBehavior(FogRuntime runtime, SerialMessageProducer producer) {
+        this.producer = producer;
         this.channel = runtime.newCommandChannel(SERIAL_WRITER);
     }
 

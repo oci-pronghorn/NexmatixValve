@@ -2,15 +2,19 @@ package com.ociweb.behaviors.simulators;
 
 import com.ociweb.schema.MessageScheme;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import static com.ociweb.schema.FieldType.string;
+import static com.ociweb.schema.MessageScheme.stationCount;
 
 public class DecentMessageProducer implements SerialMessageProducer {
 
-    private final static int[] installedStationIds = new int[] { 0, 3, 4, 8, 9 };
+    private final int manifoldNumber;
+    private final List<Integer> installedStationIds;
+    private final int cfIdx;
+    private final int pfIdx;
+    private final int lfIdx;
+
     private final static String[] inputEnum = new String[] { "N", "A", "B" };
     private final static String[] pressureFaultEnum = new String[] { "N", "H", "L" };
     private final static String[] leakDetectedEnum = new String[] { "N", "P", "C" };
@@ -33,11 +37,26 @@ public class DecentMessageProducer implements SerialMessageProducer {
     private static final double minPsi = 0.0;
     private static final double maxPsi = 120.0;
 
+    public DecentMessageProducer(int manifoldNumber) {
+        this.manifoldNumber = manifoldNumber;
+        installedStationIds = new ArrayList<>();
+        for (int i = 0; i < stationCount; i++) {
+            boolean isInstalled = ThreadLocalRandom.current().nextInt(0, 2) == 1;
+            if (isInstalled) {
+                installedStationIds.add(i);
+            }
+        }
+
+        this.cfIdx = ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
+        this.pfIdx = ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
+        this.lfIdx = ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
+    }
+
     @Override
     public String next(long time, int i) {
 
         StringBuilder s = new StringBuilder("[");
-        int stationId = installedStationIds[ThreadLocalRandom.current().nextInt(0, installedStationIds.length)];
+        int stationId = installedStationIds.get(ThreadLocalRandom.current().nextInt(0, installedStationIds.size()));
 
         for (int parseId = 0; parseId < MessageScheme.parseIdLimit; parseId++) {
             String value = MessageScheme.patterns[parseId].substring(0, 2);
@@ -60,7 +79,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 return Integer.toString(stationId);
             }
             case 1: { // SerialNumber
-                return installedValves.computeIfAbsent(stationId, k -> stationId + 100000).toString();
+                return installedValves.computeIfAbsent(stationId, k -> (manifoldNumber * 1000) + (stationId * 10)).toString();
             }
             case 2: { // ProductNumber
                 Integer sn = installedValves.get(stationId);
@@ -90,7 +109,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 if (sn != null) {
                     c = cycleCounts.get(sn);
                     if (c == null) {
-                        if (stationId == installedStationIds[1]) {
+                        if (stationId == installedStationIds.get(cfIdx)) {
                             Integer ccl = cycleCountLimits.get(sn);
                             if (ccl != null) {
                                 c = ccl - 10;
@@ -127,7 +146,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
             }
             case 6: { // PressureFault
                 int idx = 0;
-                if (stationId == installedStationIds[2]) {
+                if (stationId == installedStationIds.get(pfIdx)) {
                     boolean flipIt = i % 4 == 0;
                     Integer sn = installedValves.get(stationId);
                     if (sn != null) {
@@ -148,7 +167,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
             }
             case 7: { // LeakDetection
                 int idx = 0;
-                if (stationId == installedStationIds[3]) {
+                if (stationId == installedStationIds.get(lfIdx)) {
                     boolean flipIt = i % 4 == 0;
                     Integer sn = installedValves.get(stationId);
                     if (sn != null) {

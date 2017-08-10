@@ -16,42 +16,28 @@ import com.google.pubsub.v1.TopicName;
 
 import static com.ociweb.schema.MessageScheme.jsonMessageSize;
 
-public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListener, StartupListener, ShutdownListener {
+public class GooglePubSubBehavior implements PubSubListener, StartupListener, ShutdownListener {
     private final FogCommandChannel cmd;
     private final String publishTopic;
     private final int interval;
     private int counter = 0;
     private long lastTime = System.currentTimeMillis();
-    //private final String url;
 
     public GooglePubSubBehavior(FogRuntime runtime, String publishTopic, int interval) {
         this.cmd = runtime.newCommandChannel();
         this.publishTopic = publishTopic;
         this.interval = interval;
         this.cmd.ensureDynamicMessaging(64, jsonMessageSize);
-        //this.cmd.ensureHTTPClientRequesting(10, jsonMessageSize);
-        //this.url = String.format("https://pubsub.googleapis.com/v1/projects/%s/topics/%s:publish", "nexmatixmvp", "manifold-state");
     }
 
     @Override
     public boolean message(CharSequence charSequence, BlobReader messageReader) {
         final String json = messageReader.readUTF();
-
-       // StringBuilder builder = new StringBuilder();
-        //builder.append("{\"messages\": [{\"attributes\": {\"key\": \"iana.org/language_tag\", \"value\": \"en\"},\"data\": \"");
-       // byte[] bytes = json.getBytes();
-       // Appendables.appendBase64(builder, bytes, 0, bytes.length, Integer.MAX_VALUE);
-       // builder.append("\"}]}");
-       // String body = builder.toString();
-      //  System.out.println(String.format("D) %s", body));
-
-        //theFoglightWay(body);
-        //theOldWay(body);
         if (counter % interval == 0) {
             long thisTime = System.currentTimeMillis();
             long duration = (thisTime - lastTime);
             lastTime = thisTime;
-            theGoogleWay(json);
+            //theGoogleWay(json);
             System.out.println(String.format("D.%s.%d) sent %d", publishTopic, counter, duration));
         }
         else {
@@ -119,61 +105,4 @@ public class GooglePubSubBehavior implements PubSubListener, HTTPResponseListene
             }
         } */
     }
-
-    @Override
-    public boolean responseHTTP(HTTPResponseReader reader) {
-        return true;
-    }
-/*
-    private void theFoglightWay(String body) {
-        cmd.httpPost(url, 80, "", blobWriter -> {
-            blobWriter.write(body.getBytes());
-        });
-    }
-
-    private void theOldWay(String body) {
-        // final String USER_AGENT = "Mozilla/5.0";
-        try {
-            URL obj = null;
-            obj = new URL(url);
-            HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-
-            //add reuqest header
-            con.setRequestMethod("POST");
-            //con.setRequestProperty("User-Agent", USER_AGENT);
-            con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-
-            //String urlParameters = "sn=C02G8416DRJM&cn=&locale=&caller=&num=12345";
-
-            // Send post request
-            con.setDoOutput(true);
-            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-            //wr.writeBytes(urlParameters);
-            wr.writeBytes(body);
-            wr.flush();
-            wr.close();
-
-            int responseCode = con.getResponseCode();
-            System.out.println("\nSending 'POST' request to URL : " + url);
-            //System.out.println("Post parameters : " + urlParameters);
-            System.out.println("Response Code : " + responseCode);
-
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-
-            //print result
-            System.out.println(response.toString());
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    */
 }

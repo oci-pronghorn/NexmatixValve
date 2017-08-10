@@ -16,25 +16,11 @@ public class MessageScheme {
             "cl%u",
             "cc%u",
             "pp%i",
+            "fd%u",
+            "sd%u",
             "pf\"%b\"",
             "ld\"%b\"",
             "in\"%b\"",
-            "fd%u",
-            "sd%u",
-    };
-
-    public static final String[] topics = new String[] {
-            "StationId",
-            "SerialNumber",
-            "ProductNumber",
-            "CycleCountLimnit",
-            "CycleCount",
-            "PressurePoint",
-            "PressureFault",
-            "LeakDetection",
-            "InputState",
-            "FabricationDate",
-            "ShipmentDate",
     };
 
     public static final String[] jsonKeys = new String[] {
@@ -44,15 +30,15 @@ public class MessageScheme {
             "ccl",
             "cc",
             "pp",
+            "fab_date",
+            "ship_date",
             "p_fault",
             "leak",
             "input",
-            "fab_date",
-            "ship_date",
     };
 
     public static final String manifoldSerialJsonKey = "manifold_sn";
-    public static final String timestampJsonKey = "update_time";
+    public static final String timestampJsonKey = "timestamp";
     public static final String stationsJsonKey = "stations";
 
     public static final boolean[] statusField = new boolean[] {
@@ -62,25 +48,25 @@ public class MessageScheme {
             true,
             true,
             true,
-            true,
-            true,
-            true,
             false,
             false,
+            true,
+            true,
+            true,
     };
 
     public static final boolean[] configField = new boolean[] {
             true,
             true,
             true,
-            false,
-            false,
-            false,
-            false,
+            true,
             false,
             false,
             true,
             true,
+            false,
+            false,
+            false,
     };
 
     public static final FieldType[] types = new FieldType[] {
@@ -90,11 +76,11 @@ public class MessageScheme {
             integer,
             integer,
             floatingPoint,
-            string,
-            string,
-            string,
             int64,
             int64,
+            string,
+            string,
+            string,
     };
 
     public static TrieParser buildParser() {
