@@ -1,11 +1,10 @@
 package com.ociweb.behaviors;
 
+import com.ociweb.gl.api.GreenReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.pipe.BlobReader;
-import com.ociweb.pronghorn.util.TrieParser;
-import com.ociweb.pronghorn.util.TrieParserReader;
 import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
 import com.ociweb.schema.MsgField;
@@ -23,8 +22,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
     private final boolean isStatus;
     private final int manifoldNumber;
     private final String publishTopic;
-    private final TrieParser parser = MessageScheme.buildParser();
-    private final TrieParserReader reader = new TrieParserReader(4, true);
+    private final GreenReader reader = MessageScheme.buildParser().newReader();
 
     private final int batchCountLimit;
     private int batchCount;
@@ -50,22 +48,18 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
         //System.out.println(String.format("C) Recieved: %d:'%s'", a.length(), a.toString()));
         final short messageLength = messageReader.readShort();
         //System.out.println("C) Length: " + messageLength);
-        reader.parseSetup(messageReader, messageLength);
+        reader.beginRead(messageReader);
         int stationId = -1;
 
         StringBuilder json = new StringBuilder();
 
         json.append("{");
 
-        while (true) {
-            // Why return long only to down cast it to int for capture methods?
-            int parsedId = (int) TrieParserReader.parseNext(reader, parser);
+        while (reader.hasMore()) {
+            int parsedId = (int)reader.readToken();
             //System.out.println("E) Parsed Field: " + parsedId);
             if (parsedId == -1) {
-                if (TrieParserReader.parseSkipOne(reader) == -1) {
-                    //System.out.println("C) End of Message");
-                    break;
-                }
+                reader.skipByte();
             }
             else {
                 MsgField msgField = MessageScheme.messages[parsedId];
@@ -79,7 +73,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                 json.append("\":");
                 switch (fieldType) {
                     case integer: {
-                        int value = (int) TrieParserReader.capturedLongField(reader, 0);
+                        int value = (int) reader.extractedLong(0);
                         if (parsedId == 0) {
                             value = value + 1;
                             stationId = value;
@@ -89,22 +83,20 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                         break;
                     }
                     case int64: {
-                        // Coming out bad
-                        long value = TrieParserReader.capturedLongField(reader, 0);
+                        long value = reader.extractedLong(0);
                         json.append(0/*value*/);
                         json.append(",");
                         break;
                     }
                     case string: {
                         json.append("\"");
-                        TrieParserReader.capturedFieldBytesAsUTF8(reader, 0, json);
+                        reader.copyExtractedUTF8ToAppendable(0, json);
                         json.append("\"");
                         json.append(",");
                         break;
                     }
                     case floatingPoint: {
-                        // Not a decimal - this truncates
-                        double value = (double) TrieParserReader.capturedLongField(reader, 0);
+                        double value = reader.extractedDouble(0);
                         json.append(formatter.format(value));
                         json.append(",");
                         break;
@@ -136,9 +128,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
             stations.clear();
             batchCount = ThreadLocalRandom.current().nextInt(1, batchCountLimit + 1);
             System.out.println(String.format("C.%s) %s", publishTopic, body));
-            cmd.publishTopic(publishTopic, writer -> {
-                writer.writeUTF(body);
-            });
+            cmd.publishTopic(publishTopic, writer -> writer.writeUTF(body));
         }
         return true;
     }

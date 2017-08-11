@@ -1,5 +1,5 @@
 package com.ociweb.schema;
-import com.ociweb.pronghorn.util.TrieParser;
+import com.ociweb.gl.api.GreenTokenMap;
 
 import static com.ociweb.schema.FieldType.*;
 
@@ -23,15 +23,12 @@ public class MessageScheme {
             new MsgField("pn", string,"sku", false, true),
     };
 
-    public static TrieParser buildParser() {
-        TrieParser tp = new TrieParser(messageSize,1,false,true);
-        tp.setMaxNumericLengthCapturable(16);
-        tp.setMaxBytesCapturable(36);
+    public static GreenTokenMap buildParser() {
+        GreenTokenMap map = new GreenTokenMap();
         for (int i = 0; i < parseIdLimit; i++) {
-            final String pattern = messages[i].getPattern();
-            tp.setUTF8Value(pattern, i);
+            map = map.add(i, messages[i].getPattern());
         }
-        return tp;
+        return map;
     }
 
     public static final String manifoldSerialJsonKey = "manifold_sn";
