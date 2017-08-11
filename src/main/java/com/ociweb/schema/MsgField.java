@@ -16,21 +16,6 @@ public class MsgField {
     }
 
     String getPattern() {
-        String pattern = key;
-        switch (type) {
-            case integer:
-                pattern += "%u";
-                break;
-            case string:
-                pattern += "\"%b\"";
-                break;
-            case floatingPoint:
-                pattern += "%i";
-                break;
-            case int64:
-                pattern += "%u";
-                break;
-        }
-        return pattern;
+        return key + type.getPattern();
     }
 }
