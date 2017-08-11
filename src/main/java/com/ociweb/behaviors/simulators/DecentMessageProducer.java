@@ -159,10 +159,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
                     date = fabricationDates.computeIfAbsent(sn, k -> {
-                        //Date d = new Date(2016, 5, 13);
-                        //d.setDate(d.getDate() + ThreadLocalRandom.current().nextInt(-5, 6));
-                        //return d.getTime();
-                        return System.currentTimeMillis();
+                        return System.currentTimeMillis() - 31536000000L;
                     });
                 }
                 return date.toString();
@@ -172,11 +169,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
                     date = shipmentDates.computeIfAbsent(sn, k -> {
-                        //Date d = new Date(2016, 6, 13);
-                        //d.setDate(d.getDate() + ThreadLocalRandom.current().nextInt(-5, 6));
-                        //Returns the number of milliseconds since January 1, 1970, 00:00:00 GMT
-                        //return d.getTime();
-                        return System.currentTimeMillis();
+                        return System.currentTimeMillis() - 31536000000L + 172800000;
                     });
                 }
                 return date.toString();

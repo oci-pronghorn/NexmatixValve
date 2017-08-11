@@ -84,7 +84,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
                     }
                     case int64: {
                         long value = reader.extractedLong(0);
-                        json.append(0/*value*/);
+                        json.append(value);
                         json.append(",");
                         break;
                     }
