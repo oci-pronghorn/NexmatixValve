@@ -158,9 +158,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 Long date = 0L;
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
-                    date = fabricationDates.computeIfAbsent(sn, k -> {
-                        return System.currentTimeMillis() - 31536000000L;
-                    });
+                    date = fabricationDates.computeIfAbsent(sn, k -> System.currentTimeMillis() - 31536000000L);
                 }
                 return date.toString();
             }
@@ -168,9 +166,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 Long date = 0L;
                 Integer sn = installedValves.get(stationId);
                 if (sn != null) {
-                    date = shipmentDates.computeIfAbsent(sn, k -> {
-                        return System.currentTimeMillis() - 31536000000L + 172800000;
-                    });
+                    date = shipmentDates.computeIfAbsent(sn, k -> System.currentTimeMillis() - 31536000000L + 172800000);
                 }
                 return date.toString();
             }
@@ -188,6 +184,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                             else {
                                 idx = ThreadLocalRandom.current().nextInt(1, pressureFaultEnum.length);
                             }
+                            System.out.println(String.format("*) Pressure Fault %d, %d %s", stationId + 1, sn, pressureFaultEnum[idx]));
                             pressureFaults.put(sn, idx);
                         }
                         return pressureFaultEnum[idx];
@@ -209,6 +206,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                             else {
                                 idx = ThreadLocalRandom.current().nextInt(1, leakDetectedEnum.length);
                             }
+                            System.out.println(String.format("*) Leak Fault %d %d %s", stationId + 1, sn, leakDetectedEnum[idx]));
                             leakFaults.put(sn, idx);
                         }
                     }
