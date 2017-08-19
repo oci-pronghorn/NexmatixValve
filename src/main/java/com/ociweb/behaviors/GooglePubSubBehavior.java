@@ -77,7 +77,7 @@ public class GooglePubSubBehavior implements PubSubListener, StartupListener, Sh
             // Create a publisher instance with default settings bound to the topic
             // This takes a long time!!!
             if (topicName == null) {
-                topicName = TopicName.create("nexmatixmvp", publishTopic);
+                topicName = TopicName.create("nexmatixmvp-dev", publishTopic);
                 publisher = Publisher.defaultBuilder(topicName).build();
             }
 
