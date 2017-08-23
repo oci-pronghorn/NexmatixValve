@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.google.pubsub.v1.TopicName;
 
+import static com.ociweb.schema.MessageScheme.googleProjectName;
 import static com.ociweb.schema.MessageScheme.jsonMessageSize;
 
 public class GooglePubSubBehavior implements PubSubListener, StartupListener, ShutdownListener {
@@ -77,7 +78,7 @@ public class GooglePubSubBehavior implements PubSubListener, StartupListener, Sh
             // Create a publisher instance with default settings bound to the topic
             // This takes a long time!!!
             if (topicName == null) {
-                topicName = TopicName.create("nexmatixmvp-dev", publishTopic);
+                topicName = TopicName.create(googleProjectName, publishTopic);
                 publisher = Publisher.defaultBuilder(topicName).build();
             }
 
