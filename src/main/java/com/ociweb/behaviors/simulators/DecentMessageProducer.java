@@ -3,43 +3,31 @@ package com.ociweb.behaviors.simulators;
 import com.ociweb.schema.MessageScheme;
 import com.ociweb.schema.MsgField;
 
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import static com.ociweb.schema.FieldType.string;
 import static com.ociweb.schema.MessageScheme.stationCount;
 
-public class DecentMessageProducer implements SerialMessageProducer {
+class DecentMessageState implements java.io.Serializable {
+    final List<Integer> installedStationIds;
+    final int cfIdx;
+    final int pfIdx;
+    final int lfIdx;
 
-    private final int manifoldNumber;
-    private final List<Integer> installedStationIds;
-    private final int cfIdx;
-    private final int pfIdx;
-    private final int lfIdx;
+    final Map<Integer, Integer> installedValves = new HashMap<>();
+    final Map<Integer, String> productNumbers = new HashMap<>();
+    final Map<Integer, Integer> cycleCounts = new HashMap<>();
+    final Map<Integer, Integer> cycleCountLimits = new HashMap<>();
+    final Map<Integer, String> inputStatus = new HashMap<>();
 
-    private final static String[] inputEnum = new String[] { "N", "A", "B" };
-    private final static String[] pressureFaultEnum = new String[] { "N", "H", "L" };
-    private final static String[] leakDetectedEnum = new String[] { "N", "P", "C" };
+    final Map<Integer, Long> fabricationDates = new HashMap<>();
+    final Map<Integer, Long> shipmentDates = new HashMap<>();
 
-    private final static String[] sizeEnum = new String[] { "SM" };
-    private final static String[] colorEnum = new String[] { "BLU" };
+    final Map<Integer, Integer> pressureFaults = new HashMap<>();
+    final Map<Integer, Integer> leakFaults = new HashMap<>();
 
-    private final Map<Integer, Integer> installedValves = new HashMap<>();
-    private final Map<Integer, String> productNumbers = new HashMap<>();
-    private final Map<Integer, Integer> cycleCounts = new HashMap<>();
-    private final Map<Integer, Integer> cycleCountLimits = new HashMap<>();
-    private final Map<Integer, String> inputStatus = new HashMap<>();
-
-    private final Map<Integer, Long> fabricationDates = new HashMap<>();
-    private final Map<Integer, Long> shipmentDates = new HashMap<>();
-
-    private final Map<Integer, Integer> pressureFaults = new HashMap<>();
-    private final Map<Integer, Integer> leakFaults = new HashMap<>();
-
-    private static final double minPsi = 0.0;
-    private static final double maxPsi = 120.0;
-
-    public DecentMessageProducer(int manifoldNumber) {
-        this.manifoldNumber = manifoldNumber;
+    DecentMessageState() {
         installedStationIds = new ArrayList<>();
         final int maxStations = stationCount;
         for (int i = 0; i < maxStations; i++) {
@@ -53,17 +41,60 @@ public class DecentMessageProducer implements SerialMessageProducer {
         this.pfIdx = ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
         this.lfIdx = ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
     }
+}
+
+public class DecentMessageProducer implements SerialMessageProducer {
+
+    private final static String[] inputEnum = new String[] { "N", "A", "B" };
+    private final static String[] pressureFaultEnum = new String[] { "N", "H", "L" };
+    private final static String[] leakDetectedEnum = new String[] { "N", "P", "C" };
+    private final static String[] sizeEnum = new String[] { "SM" };
+    private final static String[] colorEnum = new String[] { "BLU" };
+    private final static double minPsi = 0.0;
+    private final static double maxPsi = 120.0;
+
+    private final int manifoldNumber;
+    private final DecentMessageState s;
+
+    public DecentMessageProducer(int manifoldNumber) {
+        this.manifoldNumber = manifoldNumber;
+
+        DecentMessageState state;
+        try {
+            FileInputStream fileIn = new FileInputStream("Manifold" + manifoldNumber);
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            state = (DecentMessageState) in.readObject();
+            in.close();
+            fileIn.close();
+        }
+        catch(IOException | ClassNotFoundException i) {
+            state = new DecentMessageState();
+        }
+        this.s = state;
+    }
 
     public int getInstalledCount() {
-        return installedStationIds.size();
+        return s.installedStationIds.size();
+    }
+
+    private void write() {
+        try {
+            FileOutputStream fileOut = new FileOutputStream("Manifold" + manifoldNumber);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(s);
+            out.close();
+            fileOut.close();
+        } catch(IOException i) {
+            i.printStackTrace();
+        }
     }
 
     @Override
     public String next(long time, int i) {
 
-        StringBuilder s = new StringBuilder("[");
-        final int idx = (i + installedStationIds.size()) % installedStationIds.size(); ////ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
-        int stationId = installedStationIds.get(idx);
+        StringBuilder str = new StringBuilder("[");
+        final int idx = (i + s.installedStationIds.size()) % s.installedStationIds.size(); ////ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
+        int stationId = s.installedStationIds.get(idx);
 
         for (int parseId = 0; parseId < MessageScheme.parseIdLimit; parseId++) {
             MsgField msgField = MessageScheme.messages[parseId];
@@ -75,10 +106,11 @@ public class DecentMessageProducer implements SerialMessageProducer {
             else {
                 value += datum;
             }
-            s.append(value);
+            str.append(value);
         }
-        s.append("]");
-        return s.toString();
+        str.append("]");
+        write();
+        return str.toString();
     }
 
     private String calcValue(long time, int i, int parseId, int stationId) {
@@ -89,12 +121,12 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 return Integer.toString(stationId);
             }
             case "sn": { // SerialNumber
-                return installedValves.computeIfAbsent(stationId, k -> (manifoldNumber * 1000) + (stationId * 10)).toString();
+                return s.installedValves.computeIfAbsent(stationId, k -> (manifoldNumber * 1000) + (stationId * 10)).toString();
             }
             case "pn": { // ProductNumber
-                Integer sn = installedValves.get(stationId);
+                Integer sn = s.installedValves.get(stationId);
                 if (sn != null) {
-                    return productNumbers.computeIfAbsent(sn, k ->
+                    return s.productNumbers.computeIfAbsent(sn, k ->
                             String.format("NX-DCV-%s-%s-%d-V%d-L%d-S%d-00",
                                     sizeEnum[ThreadLocalRandom.current().nextInt(0, sizeEnum.length)],
                                     colorEnum[ThreadLocalRandom.current().nextInt(0, colorEnum.length)],
@@ -106,21 +138,21 @@ public class DecentMessageProducer implements SerialMessageProducer {
             }
             case "cl": { // CycleCountLimnit
                 Integer l = 0;
-                Integer sn = installedValves.get(stationId);
+                Integer sn = s.installedValves.get(stationId);
                 if (sn != null) {
-                    l = cycleCountLimits.computeIfAbsent(sn, k ->
+                    l = s.cycleCountLimits.computeIfAbsent(sn, k ->
                             ThreadLocalRandom.current().nextInt(100000000, 900000000));
                 }
                 return l.toString();
             }
             case "cc": { // CycleCount
                 Integer c = 0;
-                Integer sn = installedValves.get(stationId);
+                Integer sn = s.installedValves.get(stationId);
                 if (sn != null) {
-                    c = cycleCounts.get(sn);
+                    c = s.cycleCounts.get(sn);
                     if (c == null) {
-                        if (stationId == installedStationIds.get(cfIdx)) {
-                            Integer ccl = cycleCountLimits.get(sn);
+                        if (stationId == s.installedStationIds.get(s.cfIdx)) {
+                            Integer ccl = s.cycleCountLimits.get(sn);
                             if (ccl != null) {
                                 c = ccl - 10;
                             }
@@ -133,7 +165,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                         }
                     }
                     c += 1;
-                    cycleCounts.put(sn, c);
+                    s.cycleCounts.put(sn, c);
                 }
                 return c.toString();
             }
@@ -156,27 +188,27 @@ public class DecentMessageProducer implements SerialMessageProducer {
             }
             case "fd": { // Fabrication Date
                 Long date = 0L;
-                Integer sn = installedValves.get(stationId);
+                Integer sn = s.installedValves.get(stationId);
                 if (sn != null) {
-                    date = fabricationDates.computeIfAbsent(sn, k -> System.currentTimeMillis() - 31536000000L);
+                    date = s.fabricationDates.computeIfAbsent(sn, k -> System.currentTimeMillis() - 31536000000L);
                 }
                 return date.toString();
             }
             case "sd": { // Shipment Date
                 Long date = 0L;
-                Integer sn = installedValves.get(stationId);
+                Integer sn = s.installedValves.get(stationId);
                 if (sn != null) {
-                    date = shipmentDates.computeIfAbsent(sn, k -> System.currentTimeMillis() - 31536000000L + 172800000);
+                    date = s.shipmentDates.computeIfAbsent(sn, k -> System.currentTimeMillis() - 31536000000L + 172800000);
                 }
                 return date.toString();
             }
             case "pf": { // PressureFault
                 int idx = 0;
-                if (stationId == installedStationIds.get(pfIdx)) {
+                if (stationId == s.installedStationIds.get(s.pfIdx)) {
                     boolean flipIt = i % 4 == 0;
-                    Integer sn = installedValves.get(stationId);
+                    Integer sn = s.installedValves.get(stationId);
                     if (sn != null) {
-                        idx = pressureFaults.computeIfAbsent(sn, k -> 0);
+                        idx = s.pressureFaults.computeIfAbsent(sn, k -> 0);
                         if (flipIt) {
                             if (idx != 0) {
                                 idx = 0;
@@ -185,7 +217,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                                 idx = ThreadLocalRandom.current().nextInt(1, pressureFaultEnum.length);
                             }
                             System.out.println(String.format("*) Pressure Fault %d, %d %s", stationId + 1, sn, pressureFaultEnum[idx]));
-                            pressureFaults.put(sn, idx);
+                            s.pressureFaults.put(sn, idx);
                         }
                         return pressureFaultEnum[idx];
                     }
@@ -194,11 +226,11 @@ public class DecentMessageProducer implements SerialMessageProducer {
             }
             case "ld": { // LeakDetection
                 int idx = 0;
-                if (stationId == installedStationIds.get(lfIdx)) {
+                if (stationId == s.installedStationIds.get(s.lfIdx)) {
                     boolean flipIt = i % 4 == 0;
-                    Integer sn = installedValves.get(stationId);
+                    Integer sn = s.installedValves.get(stationId);
                     if (sn != null) {
-                        idx = leakFaults.computeIfAbsent(sn, k -> 0);
+                        idx = s.leakFaults.computeIfAbsent(sn, k -> 0);
                         if (flipIt) {
                             if (idx != 0) {
                                 idx = 0;
@@ -207,7 +239,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                                 idx = ThreadLocalRandom.current().nextInt(1, leakDetectedEnum.length);
                             }
                             System.out.println(String.format("*) Leak Fault %d %d %s", stationId + 1, sn, leakDetectedEnum[idx]));
-                            leakFaults.put(sn, idx);
+                            s.leakFaults.put(sn, idx);
                         }
                     }
                 }
@@ -215,9 +247,9 @@ public class DecentMessageProducer implements SerialMessageProducer {
             }
             case "in": { // InputState
                 String e = inputEnum[0];
-                Integer sn = installedValves.get(stationId);
+                Integer sn = s.installedValves.get(stationId);
                 if (sn != null) {
-                    e = inputStatus.computeIfAbsent(sn, k -> inputEnum[ThreadLocalRandom.current().nextInt(0, inputEnum.length)]);
+                    e = s.inputStatus.computeIfAbsent(sn, k -> inputEnum[ThreadLocalRandom.current().nextInt(0, inputEnum.length)]);
                 }
                 return e;
             }
