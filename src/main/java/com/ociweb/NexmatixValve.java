@@ -65,8 +65,10 @@ public class NexmatixValve implements FogApp
                     .sign(algorithm);
         } catch (UnsupportedEncodingException exception){
             //UTF-8 encoding not supported
+            System.out.print(exception);
         } catch (Exception exception){
             //Invalid Signing configuration / Couldn't convert Claims.
+            System.out.print(exception);
         }
 
 
@@ -86,7 +88,6 @@ public class NexmatixValve implements FogApp
                 registryId,
                 deviceId);
 
-          ;
         this.mqttBridge = builder.useMQTT(broker, port, true, clientId, 64, 32767)
                 .cleanSession(true)
                 .keepAliveSeconds(10)
@@ -108,10 +109,10 @@ public class NexmatixValve implements FogApp
         runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_STATUS", true, installedCount)).addSubscription("UART");
         runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_CONFIG", false, installedCount)).addSubscription("UART");
         // Register Google Pub Sub
-        //runtime.registerListener(new GooglePubSubBehavior(runtime, "manifold-state", 1)).addSubscription("JSON_STATUS");
-        //runtime.registerListener(new GooglePubSubBehavior(runtime, "manifold-configuration", 60)).addSubscription("JSON_CONFIG");
+        runtime.registerListener(new GooglePubSubBehavior(runtime, "manifold-state", 1)).addSubscription("JSON_STATUS");
+        runtime.registerListener(new GooglePubSubBehavior(runtime, "manifold-configuration", 60)).addSubscription("JSON_CONFIG");
 
-        runtime.bridgeTransmission("JSON_STATUS", "manifold-state-mqtt", this.mqttBridge);
-        runtime.bridgeTransmission("JSON_CONFIG", "manifold-configuration-mqtt", this.mqttBridge);
+        runtime.bridgeTransmission("JSON_STATUS", "manifold-state", this.mqttBridge);
+        runtime.bridgeTransmission("JSON_CONFIG", "manifold-configuration", this.mqttBridge);
     }
 }
