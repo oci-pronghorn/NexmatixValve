@@ -18,6 +18,7 @@ public class NexmatixValve implements FogApp
     @Override
     public void declareBehavior(FogRuntime runtime) {
         final int manifoldNumber = Integer.parseInt(runtime.getArgumentValue("--manifold", "-m", "1"));
+        final String project = runtime.getArgumentValue("--project", "-p", "nexmatixmvp-dev");
 
         // Register the serial simulator
         DecentMessageProducer producer = new DecentMessageProducer(manifoldNumber);
@@ -29,7 +30,7 @@ public class NexmatixValve implements FogApp
         runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_STATUS", true, installedCount)).addSubscription("UART");
         runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_CONFIG", false, installedCount)).addSubscription("UART");
         // Register Google Pub Sub
-        runtime.registerListener(new GooglePubSubBehavior(runtime, "manifold-state", 1)).addSubscription("JSON_STATUS");
-        runtime.registerListener(new GooglePubSubBehavior(runtime, "manifold-configuration", 60)).addSubscription("JSON_CONFIG");
+        runtime.registerListener(new GooglePubSubBehavior(project, runtime, "manifold-state", 1)).addSubscription("JSON_STATUS");
+        runtime.registerListener(new GooglePubSubBehavior(project, runtime, "manifold-configuration", 60)).addSubscription("JSON_CONFIG");
     }
 }

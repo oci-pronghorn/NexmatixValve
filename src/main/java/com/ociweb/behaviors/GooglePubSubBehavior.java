@@ -39,14 +39,16 @@ public class GooglePubSubBehavior implements PubSubListener, StartupListener, Sh
     private final FogCommandChannel cmd;
     private final String publishTopic;
     private final int interval;
+    private final String project;
     private int counter = 0;
     private long lastTime = System.currentTimeMillis();
 
-    public GooglePubSubBehavior(FogRuntime runtime, String publishTopic, int interval) {
+    public GooglePubSubBehavior(String project, FogRuntime runtime, String publishTopic, int interval) {
         this.cmd = runtime.newCommandChannel();
         this.publishTopic = publishTopic;
         this.interval = interval;
         this.cmd.ensureDynamicMessaging(64, jsonMessageSize);
+        this.project = project;
     }
 
     @Override
@@ -96,7 +98,7 @@ public class GooglePubSubBehavior implements PubSubListener, StartupListener, Sh
             // Create a publisher instance with default settings bound to the topic
             // This takes a long time!!!
             if (topicName == null) {
-                topicName = TopicName.create("nexmatixmvp-dev", publishTopic);
+                topicName = TopicName.create(project, publishTopic);
                 publisher = Publisher.defaultBuilder(topicName).build();
             }
 
