@@ -16,6 +16,25 @@ import com.google.pubsub.v1.TopicName;
 
 import static com.ociweb.schema.MessageScheme.jsonMessageSize;
 
+/*
+Must execute uber jar
+
+apt-get install unzip autoconf m4 libtool
+
+#! /bin/bash
+wget https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.gz
+tar xzf protobuf-2.6.1.tar.gz
+cd protobuf-2.6.1
+sudo apt-get update
+sudo apt-get install build-essential
+sudo ./configure
+sudo make
+sudo make check
+sudo make install
+sudo ldconfig
+protoc --version
+ */
+
 public class GooglePubSubBehavior implements PubSubListener, StartupListener, ShutdownListener {
     private final FogCommandChannel cmd;
     private final String publishTopic;
