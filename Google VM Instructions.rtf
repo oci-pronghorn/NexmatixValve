@@ -7,6 +7,7 @@
 
 \f0\fs24 \cf0 Google Web\
 	Create debian VM named "simulator"\
+	Be certain to add pubsub API permission to instance\
 	Start VM\
 	Add service account to publish permissions\
 	Open SSH web shell\
@@ -46,17 +47,17 @@ Host Computer Shell\
 \
 SSH in Browswer\
 	cd /sim\
-	java -jar uberNexmatixValve.jar -m 4 -p nexmaticmvp\
+	java -jar uberNexmatixValve.jar -m 4 -p nexmatixmvp\
 		verify execution\
 	ctr-c\
 		verify Manifold4 file exists\
 \
 	sudo vi launchsim\
 		#!/bin/sh\
-		nohup java -jar /sim/uberNexmatixValve.jar -m 1 -p nexmaticmvp >/dev/null 2>&1 &\
+		nohup java -jar /sim/uberNexmatixValve.jar -m 1 -p nexmatixmvp >/dev/null 2>&1 &\
 		first=$!\
 		echo "first pid is $first"\
-		nohup java -jar /sim/uberNexmatixValve.jar -m 3 -p nexmaticmvp >/dev/null 2>&1 &\
+		nohup java -jar /sim/uberNexmatixValve.jar -m 3 -p nexmatixmvp >/dev/null 2>&1 &\
 		second=$!\
 		echo "second pid is $second"\
 	sudo chmod a+x launchsim\
