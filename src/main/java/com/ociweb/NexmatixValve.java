@@ -3,21 +3,15 @@ package com.ociweb;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.ociweb.behaviors.simulators.DecentMessageProducer;
-import com.ociweb.behaviors.simulators.SerialMessageProducer;
 import com.ociweb.behaviors.simulators.SerialSimulatorBehavior;
 import com.ociweb.behaviors.*;
 import com.ociweb.gl.api.MQTTBridge;
 import com.ociweb.iot.maker.*;
 
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-
-import static com.ociweb.schema.MessageScheme.googleProjectName;
-import static com.ociweb.schema.MessageScheme.jsonMessageSize;
-
 public class NexmatixValve implements FogApp
 {
     private MQTTBridge mqttBridge;
+    private String googleProjectId;
     private int manifoldNumber = 0;
 
     @Override
@@ -25,6 +19,7 @@ public class NexmatixValve implements FogApp
         builder.useSerial(Baud.B_____9600); //optional device can be set as the second argument
         builder.setTimerPulseRate(1000);
 
+        googleProjectId = builder.getArgumentValue("--project", "-p", "nexmatixmvp-dev");
         manifoldNumber = Integer.parseInt(builder.getArgumentValue("--manifold", "-m", "1"));
 
         String password = "";
@@ -63,18 +58,14 @@ public class NexmatixValve implements FogApp
             password = JWT.create()
                     .withIssuer("auth0")
                     .sign(algorithm);
-        } catch (UnsupportedEncodingException exception){
-            //UTF-8 encoding not supported
-            System.out.print(exception);
         } catch (Exception exception){
-            //Invalid Signing configuration / Couldn't convert Claims.
             System.out.print(exception);
         }
 
 
         final String deviceId = String.format("manifold-%d", manifoldNumber);
         final String cloudRegion = "us-central1";
-        final String registryId = googleProjectName;
+        final String registryId = googleProjectId;
         final String broker =  "mqtt.googleapis.com";
         final int port = 8883;
         final String username = "ignored";
@@ -83,7 +74,7 @@ public class NexmatixValve implements FogApp
 
         final String clientId = String.format(
                 "projects/%s/locations/%s/registries/%s/devices/%s",
-                googleProjectName,
+                googleProjectId,
                 cloudRegion,
                 registryId,
                 deviceId);
@@ -109,8 +100,9 @@ public class NexmatixValve implements FogApp
         runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_STATUS", true, installedCount)).addSubscription("UART");
         runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_CONFIG", false, installedCount)).addSubscription("UART");
         // Register Google Pub Sub
-        runtime.registerListener(new GooglePubSubBehavior(runtime, "manifold-state", 1)).addSubscription("JSON_STATUS");
-        runtime.registerListener(new GooglePubSubBehavior(runtime, "manifold-configuration", 60)).addSubscription("JSON_CONFIG");
+
+        runtime.registerListener(new GooglePubSubBehavior(googleProjectId, runtime, "manifold-state", 1)).addSubscription("JSON_STATUS");
+        runtime.registerListener(new GooglePubSubBehavior(googleProjectId, runtime, "manifold-configuration", 60)).addSubscription("JSON_CONFIG");
 
         runtime.bridgeTransmission("JSON_STATUS", "manifold-state", this.mqttBridge);
         runtime.bridgeTransmission("JSON_CONFIG", "manifold-configuration", this.mqttBridge);

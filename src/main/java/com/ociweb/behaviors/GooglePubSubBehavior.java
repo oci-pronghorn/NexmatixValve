@@ -14,40 +14,22 @@ import java.util.List;
 
 import com.google.pubsub.v1.TopicName;
 
-import static com.ociweb.schema.MessageScheme.googleProjectName;
 import static com.ociweb.schema.MessageScheme.jsonMessageSize;
-
-/*
-Must execute uber jar
-
-apt-get install unzip autoconf m4 libtool
-
-#! /bin/bash
-wget https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.gz
-tar xzf protobuf-2.6.1.tar.gz
-cd protobuf-2.6.1
-sudo apt-get update
-sudo apt-get install build-essential
-sudo ./configure
-sudo make
-sudo make check
-sudo make install
-sudo ldconfig
-protoc --version
- */
 
 public class GooglePubSubBehavior implements PubSubListener, StartupListener, ShutdownListener {
     private final FogCommandChannel cmd;
     private final String publishTopic;
     private final int interval;
+    private final String project;
     private int counter = 0;
     private long lastTime = System.currentTimeMillis();
 
-    public GooglePubSubBehavior(FogRuntime runtime, String publishTopic, int interval) {
+    public GooglePubSubBehavior(String project, FogRuntime runtime, String publishTopic, int interval) {
         this.cmd = runtime.newCommandChannel();
         this.publishTopic = publishTopic;
         this.interval = interval;
         this.cmd.ensureDynamicMessaging(64, jsonMessageSize);
+        this.project = project;
     }
 
     @Override
@@ -97,7 +79,7 @@ public class GooglePubSubBehavior implements PubSubListener, StartupListener, Sh
             // Create a publisher instance with default settings bound to the topic
             // This takes a long time!!!
             if (topicName == null) {
-                topicName = TopicName.create(googleProjectName, publishTopic);
+                topicName = TopicName.create(project, publishTopic);
                 publisher = Publisher.defaultBuilder(topicName).build();
             }
 

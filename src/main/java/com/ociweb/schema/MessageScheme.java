@@ -34,5 +34,4 @@ public class MessageScheme {
     public static final String manifoldSerialJsonKey = "manifold_sn";
     public static final String timestampJsonKey = "timestamp";
     public static final String stationsJsonKey = "stations";
-    public static final String googleProjectName = "nexmatixmvp-dev";
 }
