@@ -11,7 +11,6 @@ import com.ociweb.iot.maker.*;
 public class NexmatixValve implements FogApp
 {
     private MQTTBridge mqttBridge;
-    //private DDSBridge ddsBridge;
     private String googleProjectId;
     private int manifoldNumber = 0;
 
@@ -63,6 +62,7 @@ public class NexmatixValve implements FogApp
             System.out.print(exception);
         }
 
+
         final String deviceId = String.format("manifold-%d", manifoldNumber);
         final String cloudRegion = "us-central1";
         final String registryId = googleProjectId;
@@ -79,12 +79,10 @@ public class NexmatixValve implements FogApp
                 registryId,
                 deviceId);
 
-        this.mqttBridge = builder.useMQTT(broker, port, false, clientId, 64, 32767)
+        this.mqttBridge = builder.useMQTT(broker, port, true, clientId, 64, 32767)
                 .cleanSession(true)
                 .keepAliveSeconds(10)
                 .authentication(username, password);
-
-        //this.ddsBridge = builder.useDDS();
 
         builder.enableTelemetry();
     }
@@ -113,8 +111,5 @@ public class NexmatixValve implements FogApp
 
         runtime.bridgeTransmission("JSON_STATUS", "manifold-state", this.mqttBridge);
         runtime.bridgeTransmission("JSON_CONFIG", "manifold-configuration", this.mqttBridge);
-
-        //runtime.bridgeTransmission("DDS_STATUS", "manifold-state", this.ddsBridge);
-        //runtime.bridgeTransmission("DDS_CONFIG", "manifold-configuration", this.ddsBridge);
     }
 }
