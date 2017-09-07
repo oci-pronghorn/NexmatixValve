@@ -8,31 +8,19 @@ import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
 import com.ociweb.schema.MsgField;
+import com.ociweb.schema.ValveStatus;
 
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-class ReplaceMe implements Externalizable {
-
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-
-    }
-
-    @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-
-    }
-}
-
 public class UARTMessageToStructBehavior  implements PubSubListener {
     private final FogCommandChannel cmd;
     private final int manifoldNumber;
     private final String publishTopic;
     private final boolean isStatus;
-    private final ReplaceMe recycleMe = new ReplaceMe();
+    private final ValveStatus recycleMe = new ValveStatus();
     private final GreenReader reader = MessageScheme.buildParser().newReader();
 
     public UARTMessageToStructBehavior(FogRuntime runtime, int manifoldNumber, String publishTopic, boolean isStatus) {
@@ -59,6 +47,7 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
 
                 String key = msgField.jsonKey;
                 final FieldType fieldType = msgField.type;
+                // instead of switching on type use lambdas in schema
                 switch (fieldType) {
                     case integer: {
                         int value = (int) reader.extractedLong(0);

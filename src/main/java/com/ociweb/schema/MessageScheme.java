@@ -1,7 +1,14 @@
 package com.ociweb.schema;
 import com.ociweb.gl.api.GreenTokenMap;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import static com.ociweb.schema.FieldType.*;
+
+// TODO: once we have a DDS class replace is bools in Scheme with nullable lambdas to modify DDS Object
 
 public class MessageScheme {
     public static final int messageSize = 512;
