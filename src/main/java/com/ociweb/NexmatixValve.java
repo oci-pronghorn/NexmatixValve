@@ -11,6 +11,7 @@ import com.ociweb.iot.maker.*;
 public class NexmatixValve implements FogApp
 {
     private MQTTBridge mqttBridge;
+    //private DDSBridge ddsBridge;
     private String googleProjectId;
     private int manifoldNumber = 0;
 
@@ -62,7 +63,6 @@ public class NexmatixValve implements FogApp
             System.out.print(exception);
         }
 
-
         final String deviceId = String.format("manifold-%d", manifoldNumber);
         final String cloudRegion = "us-central1";
         final String registryId = googleProjectId;
@@ -79,10 +79,12 @@ public class NexmatixValve implements FogApp
                 registryId,
                 deviceId);
 
-        this.mqttBridge = builder.useMQTT(broker, port, true, clientId, 64, 32767)
+        this.mqttBridge = builder.useMQTT(broker, port, false, clientId, 64, 32767)
                 .cleanSession(true)
                 .keepAliveSeconds(10)
                 .authentication(username, password);
+
+        //this.ddsBridge = builder.useDDS();
 
         builder.enableTelemetry();
     }
@@ -96,15 +98,23 @@ public class NexmatixValve implements FogApp
         runtime.registerListener(new SerialSimulatorBehavior(runtime, producer));
         // Register the serial listener that chunks the messages
         runtime.registerListener(new UARTMessageWindowBehavior(runtime, "UART"));
+
         // Register the json converter
         runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_STATUS", true, installedCount)).addSubscription("UART");
         runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_CONFIG", false, installedCount)).addSubscription("UART");
-        // Register Google Pub Sub
 
+        // Register the DDS converter
+        runtime.registerListener(new UARTMessageToStructBehavior(runtime, manifoldNumber, "DDS_STATUS", true)).addSubscription("UART");
+        runtime.registerListener(new UARTMessageToStructBehavior(runtime, manifoldNumber, "DDS_CONFIG", false)).addSubscription("UART");
+
+        // Register Google Pub Sub
         runtime.registerListener(new GooglePubSubBehavior(googleProjectId, runtime, "manifold-state", 1)).addSubscription("JSON_STATUS");
         runtime.registerListener(new GooglePubSubBehavior(googleProjectId, runtime, "manifold-configuration", 60)).addSubscription("JSON_CONFIG");
 
         runtime.bridgeTransmission("JSON_STATUS", "manifold-state", this.mqttBridge);
         runtime.bridgeTransmission("JSON_CONFIG", "manifold-configuration", this.mqttBridge);
+
+        //runtime.bridgeTransmission("DDS_STATUS", "manifold-state", this.ddsBridge);
+        //runtime.bridgeTransmission("DDS_CONFIG", "manifold-configuration", this.ddsBridge);
     }
 }
