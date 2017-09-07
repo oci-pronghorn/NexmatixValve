@@ -1,5 +1,7 @@
 package com.ociweb.behaviors;
 
+import com.google.api.core.ApiFuture;
+import com.google.api.core.ApiFutures;
 import com.ociweb.gl.api.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -9,6 +11,7 @@ import com.google.cloud.pubsub.v1.Publisher;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -42,6 +45,8 @@ public class GooglePubSubBehavior implements PubSubListener, StartupListener, Sh
     private final String project;
     private int counter = 0;
     private long lastTime = System.currentTimeMillis();
+
+    private final boolean checkFuture = false;
 
     public GooglePubSubBehavior(String project, FogRuntime runtime, String publishTopic, int interval) {
         this.cmd = runtime.newCommandChannel();
@@ -93,7 +98,7 @@ public class GooglePubSubBehavior implements PubSubListener, StartupListener, Sh
     // Must execute "gcloud auth application-default login" on command line
     // And the user you select have permissions
     private void theGoogleWay(String body) {
-        //List<ApiFuture<String>> messageIdFutures = new ArrayList<>();
+        List<ApiFuture<String>> messageIdFutures = new ArrayList<>();
         try {
             // Create a publisher instance with default settings bound to the topic
             // This takes a long time!!!
@@ -109,21 +114,25 @@ public class GooglePubSubBehavior implements PubSubListener, StartupListener, Sh
                 PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
 
                 // Once published, returns a server-assigned message id (unique within the topic)
-                /*ApiFuture<String> messageIdFuture =*/ publisher.publish(pubsubMessage);
-                //messageIdFutures.add(messageIdFuture);
+                ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
+                if (checkFuture) {
+                    messageIdFutures.add(messageIdFuture);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }  /*finally {
+        }  finally {
             // wait on any pending publish requests.
-           try {
-                List<String> messageIds = ApiFutures.allAsList(messageIdFutures).get();
-                for (String messageId : messageIds) {
-                    System.out.println(String.format("D.%s.%d) published ID: %s", publishTopic, counter, messageId));
+            if (checkFuture) {
+                try {
+                    List<String> messageIds = ApiFutures.allAsList(messageIdFutures).get();
+                    for (String messageId : messageIds) {
+                        System.out.println(String.format("D.%s.%d) published ID: %s", publishTopic, counter, messageId));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
-        } */
+        }
     }
 }
