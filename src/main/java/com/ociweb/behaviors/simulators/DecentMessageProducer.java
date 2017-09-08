@@ -1,5 +1,6 @@
 package com.ociweb.behaviors.simulators;
 
+import com.ociweb.gl.api.PubSubMethodListener;
 import com.ociweb.schema.MessageScheme;
 import com.ociweb.schema.MsgField;
 
@@ -9,7 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static com.ociweb.schema.FieldType.string;
 import static com.ociweb.schema.MessageScheme.stationCount;
 
-class DecentMessageState implements java.io.Serializable {
+class DecentMessageState implements java.io.Serializable{
     final List<Integer> installedStationIds;
     final int cfIdx;
     final int pfIdx;
@@ -87,6 +88,21 @@ public class DecentMessageProducer implements SerialMessageProducer {
         } catch(IOException i) {
             i.printStackTrace();
         }
+    }
+
+    @Override
+    public void wantPressureFault() {
+
+    }
+
+    @Override
+    public void wantLeakFault() {
+
+    }
+
+    @Override
+    public void wantCycleFault() {
+
     }
 
     @Override

@@ -25,6 +25,18 @@ class BasicMessageProducer implements SerialMessageProducer {
     }
 
     @Override
+    public void wantPressureFault() {
+    }
+
+    @Override
+    public void wantLeakFault() {
+    }
+
+    @Override
+    public void wantCycleFault() {
+    }
+
+    @Override
     public String next(long aLong, int integer) {
         return msg;
     }
