@@ -22,7 +22,7 @@ public class NexmatixValve implements FogApp
                 false,
                 "nexmatix" + manifoldNumber)
                 .cleanSession(true)
-                .keepAliveSeconds(15);
+                .keepAliveSeconds(0);
 
         builder.useSerial(Baud.B_____9600); //optional device can be set as the second argument
         builder.setTimerPulseRate(1000);
