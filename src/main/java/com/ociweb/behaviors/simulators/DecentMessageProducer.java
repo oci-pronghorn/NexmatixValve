@@ -1,6 +1,5 @@
 package com.ociweb.behaviors.simulators;
 
-import com.ociweb.gl.api.PubSubMethodListener;
 import com.ociweb.schema.MessageScheme;
 import com.ociweb.schema.MsgField;
 
@@ -55,10 +54,33 @@ public class DecentMessageProducer implements SerialMessageProducer {
     private final static double maxPsi = 120.0;
 
     private final int manifoldNumber;
+    private final boolean remoteControlled;
     private final DecentMessageState s;
 
-    public DecentMessageProducer(int manifoldNumber) {
+    public static <T> int contains(final T[] array, final T v) {
+        int i = 0;
+        if (v == null) {
+            for (final T e : array) {
+                if (e == null) {
+                    return i;
+                }
+                i++;
+            }
+        } else {
+            for (final T e : array) {
+                if (e == v || v.equals(e)) {
+                    return i;
+                }
+                i++;
+            }
+        }
+
+        return -1;
+    }
+
+    public DecentMessageProducer(int manifoldNumber, boolean remoteControlled) {
         this.manifoldNumber = manifoldNumber;
+        this.remoteControlled = remoteControlled;
 
         DecentMessageState state;
         try {
@@ -91,18 +113,34 @@ public class DecentMessageProducer implements SerialMessageProducer {
     }
 
     @Override
-    public void wantPressureFault() {
-
+    public void wantPressureFault(int stationId, char v) {
+        Integer sn = s.installedValves.get(stationId);
+        if (sn != null) {
+            int idx = contains(pressureFaultEnum, v);
+            s.pressureFaults.put(sn, idx);
+            System.out.println(String.format("*) Pressure Fault %d, %d %s", stationId + 1, sn, pressureFaultEnum[idx]));
+        }
     }
 
     @Override
-    public void wantLeakFault() {
-
+    public void wantLeakFault(int stationId, char v) {
+        Integer sn = s.installedValves.get(stationId);
+        if (sn != null) {
+            int idx = contains(leakDetectedEnum, v);
+            s.leakFaults.put(sn, idx);
+            System.out.println(String.format("*) Leak Fault %d %d %s", stationId + 1, sn, leakDetectedEnum[idx]));
+        }
     }
 
     @Override
-    public void wantCycleFault() {
-
+    public void wantCycleFault(int stationId, int cycleCountLimitIn) {
+        Integer sn = s.installedValves.get(stationId);
+        if (sn != null) {
+            Integer cc = s.cycleCounts.get(sn);
+            if (cc != null) {
+                s.cycleCountLimits.put(sn, cc + cycleCountLimitIn);
+            }
+        }
     }
 
     @Override
@@ -167,7 +205,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 if (sn != null) {
                     c = s.cycleCounts.get(sn);
                     if (c == null) {
-                        if (stationId == s.installedStationIds.get(s.cfIdx)) {
+                        if (!remoteControlled && stationId == s.installedStationIds.get(s.cfIdx)) {
                             Integer ccl = s.cycleCountLimits.get(sn);
                             if (ccl != null) {
                                 c = ccl - 10;
@@ -221,21 +259,29 @@ public class DecentMessageProducer implements SerialMessageProducer {
             case "pf": { // PressureFault
                 int idx = 0;
                 if (stationId == s.installedStationIds.get(s.pfIdx)) {
-                    boolean flipIt = i % 4 == 0;
-                    Integer sn = s.installedValves.get(stationId);
-                    if (sn != null) {
-                        idx = s.pressureFaults.computeIfAbsent(sn, k -> 0);
-                        if (flipIt) {
-                            if (idx != 0) {
-                                idx = 0;
-                            }
-                            else {
-                                idx = ThreadLocalRandom.current().nextInt(1, pressureFaultEnum.length);
-                            }
-                            System.out.println(String.format("*) Pressure Fault %d, %d %s", stationId + 1, sn, pressureFaultEnum[idx]));
-                            s.pressureFaults.put(sn, idx);
+                    if (remoteControlled) {
+                        Integer sn = s.installedValves.get(stationId);
+                        if (sn != null) {
+                            idx = s.pressureFaults.computeIfAbsent(sn, k -> 0);
+                            return pressureFaultEnum[idx];
                         }
-                        return pressureFaultEnum[idx];
+                    }
+                    else {
+                        boolean flipIt = i % 4 == 0;
+                        Integer sn = s.installedValves.get(stationId);
+                        if (sn != null) {
+                            idx = s.pressureFaults.computeIfAbsent(sn, k -> 0);
+                            if (flipIt) {
+                                if (idx != 0) {
+                                    idx = 0;
+                                } else {
+                                    idx = ThreadLocalRandom.current().nextInt(1, pressureFaultEnum.length);
+                                }
+                                System.out.println(String.format("*) Pressure Fault %d, %d %s", stationId + 1, sn, pressureFaultEnum[idx]));
+                                s.pressureFaults.put(sn, idx);
+                            }
+                            return pressureFaultEnum[idx];
+                        }
                     }
                 }
                 return pressureFaultEnum[idx];
@@ -243,19 +289,27 @@ public class DecentMessageProducer implements SerialMessageProducer {
             case "ld": { // LeakDetection
                 int idx = 0;
                 if (stationId == s.installedStationIds.get(s.lfIdx)) {
-                    boolean flipIt = i % 4 == 0;
-                    Integer sn = s.installedValves.get(stationId);
-                    if (sn != null) {
-                        idx = s.leakFaults.computeIfAbsent(sn, k -> 0);
-                        if (flipIt) {
-                            if (idx != 0) {
-                                idx = 0;
+                    if (remoteControlled) {
+                        Integer sn = s.installedValves.get(stationId);
+                        if (sn != null) {
+                            idx = s.leakFaults.computeIfAbsent(sn, k -> 0);
+                            return leakDetectedEnum[idx];
+                        }
+                    }
+                    else {
+                        boolean flipIt = i % 4 == 0;
+                        Integer sn = s.installedValves.get(stationId);
+                        if (sn != null) {
+                            idx = s.leakFaults.computeIfAbsent(sn, k -> 0);
+                            if (flipIt) {
+                                if (idx != 0) {
+                                    idx = 0;
+                                } else {
+                                    idx = ThreadLocalRandom.current().nextInt(1, leakDetectedEnum.length);
+                                }
+                                System.out.println(String.format("*) Leak Fault %d %d %s", stationId + 1, sn, leakDetectedEnum[idx]));
+                                s.leakFaults.put(sn, idx);
                             }
-                            else {
-                                idx = ThreadLocalRandom.current().nextInt(1, leakDetectedEnum.length);
-                            }
-                            System.out.println(String.format("*) Leak Fault %d %d %s", stationId + 1, sn, leakDetectedEnum[idx]));
-                            s.leakFaults.put(sn, idx);
                         }
                     }
                 }

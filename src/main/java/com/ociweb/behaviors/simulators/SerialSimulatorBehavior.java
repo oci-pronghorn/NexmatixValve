@@ -21,18 +21,24 @@ public class SerialSimulatorBehavior implements TimeListener, PubSubMethodListen
     private final int limit = Integer.MAX_VALUE;
 
     public boolean wantPressureFault(CharSequence charSequence, BlobReader messageReader) {
-        producer.wantPressureFault();
+        int stationId = messageReader.readInt();
+        char v = (char)messageReader.readByte();
+        producer.wantPressureFault(stationId, v);
         return true;
     }
 
     public boolean wantLeakFault(CharSequence charSequence, BlobReader messageReader) {
-        producer.wantLeakFault();
+        int stationId = messageReader.readInt();
+        char v = (char)messageReader.readByte();
+        producer.wantLeakFault(stationId, v);
         return true;
 
     }
 
     public boolean wantCycleFault(CharSequence charSequence, BlobReader messageReader) {
-        producer.wantCycleFault();
+        int stationId = messageReader.readInt();
+        int cycleCountLimitIn = messageReader.readInt();
+        producer.wantCycleFault(stationId, cycleCountLimitIn);
         return true;
     }
 
