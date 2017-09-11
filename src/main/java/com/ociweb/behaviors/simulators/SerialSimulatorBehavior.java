@@ -22,10 +22,15 @@ public class SerialSimulatorBehavior implements TimeListener, PubSubMethodListen
 
     private final int limit = Integer.MAX_VALUE;
 
+    public boolean resetFaults(CharSequence charSequence, BlobReader messageReader) {
+        producer.resetFaults();
+        return true;
+    }
+
     public boolean wantPressureFault(CharSequence charSequence, BlobReader messageReader) {
         String str = messageReader.readUTFOfLength(messageReader.available());
         int stationId = Integer.parseInt(str.substring(0, 1));
-        char v = str.substring(1, 2).charAt(0);
+        String v = str.substring(1, 2);
         producer.wantPressureFault(stationId, v);
         return true;
     }
@@ -33,7 +38,7 @@ public class SerialSimulatorBehavior implements TimeListener, PubSubMethodListen
     public boolean wantLeakFault(CharSequence charSequence, BlobReader messageReader) {
         String str = messageReader.readUTFOfLength(messageReader.available());
         int stationId = Integer.parseInt(str.substring(0, 1));
-        char v = str.substring(1, 2).charAt(0);
+        String v = str.substring(1, 2);
         producer.wantLeakFault(stationId, v);
         return true;
 

@@ -18,7 +18,6 @@ class DecentMessageState implements java.io.Serializable{
     final Map<Integer, Integer> installedValves = new HashMap<>();
     final Map<Integer, String> productNumbers = new HashMap<>();
     final Map<Integer, Integer> cycleCounts = new HashMap<>();
-    final Map<Integer, Integer> cycleCountLimits = new HashMap<>();
     final Map<Integer, String> inputStatus = new HashMap<>();
 
     final Map<Integer, Long> fabricationDates = new HashMap<>();
@@ -26,6 +25,7 @@ class DecentMessageState implements java.io.Serializable{
 
     final Map<Integer, Integer> pressureFaults = new HashMap<>();
     final Map<Integer, Integer> leakFaults = new HashMap<>();
+    final Map<Integer, Integer> cycleCountLimits = new HashMap<>();
 
     DecentMessageState() {
         installedStationIds = new ArrayList<>();
@@ -41,6 +41,12 @@ class DecentMessageState implements java.io.Serializable{
         this.pfIdx = ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
         this.lfIdx = ThreadLocalRandom.current().nextInt(0, installedStationIds.size());
     }
+
+    void resetFaults() {
+        pressureFaults.clear();
+        leakFaults.clear();
+        cycleCountLimits.clear();
+    }
 }
 
 public class DecentMessageProducer implements SerialMessageProducer {
@@ -55,7 +61,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
 
     private final int manifoldNumber;
     private final boolean remoteControlled;
-    private final DecentMessageState s;
+    private DecentMessageState s;
 
     public static <T> int contains(final T[] array, final T v) {
         int i = 0;
@@ -113,7 +119,12 @@ public class DecentMessageProducer implements SerialMessageProducer {
     }
 
     @Override
-    public void wantPressureFault(int stationId, char v) {
+    public void resetFaults() {
+        s.resetFaults();
+    }
+
+    @Override
+    public void wantPressureFault(int stationId, String v) {
         Integer sn = s.installedValves.get(stationId);
         if (sn != null) {
             int idx = contains(pressureFaultEnum, v);
@@ -125,7 +136,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
     }
 
     @Override
-    public void wantLeakFault(int stationId, char v) {
+    public void wantLeakFault(int stationId, String v) {
         Integer sn = s.installedValves.get(stationId);
         if (sn != null) {
             int idx = contains(leakDetectedEnum, v);

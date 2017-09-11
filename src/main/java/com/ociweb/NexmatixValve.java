@@ -35,19 +35,22 @@ public class NexmatixValve implements FogApp
         final String project = runtime.getArgumentValue("--project", "-p", "nexmatixmvp-dev");
 
         final String prefix = "m" + manifoldNumber + "/";
+        final String fr = "fault/reset";
         final String fp = "fault/pressure";
         final String fl = "fault/leak";
         final String fc = "fault/cycle";
 
+        runtime.bridgeSubscription(fr, prefix + fr, controlBridge);
         runtime.bridgeSubscription(fp, prefix + fp, controlBridge);
         runtime.bridgeSubscription(fl, prefix + fl, controlBridge);
         runtime.bridgeSubscription(fc, prefix + fc, controlBridge);
 
         // Register the serial simulator
-        DecentMessageProducer producer = new DecentMessageProducer(manifoldNumber, false);
+        DecentMessageProducer producer = new DecentMessageProducer(manifoldNumber, true);
         int installedCount = producer.getInstalledCount();
         SerialSimulatorBehavior serialSim = new SerialSimulatorBehavior(runtime, producer);
         runtime.registerListener(serialSim)
+                .addSubscription(fr, serialSim::resetFaults)
                 .addSubscription(fp, serialSim::wantPressureFault)
                 .addSubscription(fl, serialSim::wantLeakFault)
                 .addSubscription(fc, serialSim::wantCycleFault);

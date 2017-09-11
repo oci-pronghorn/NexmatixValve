@@ -25,11 +25,15 @@ class BasicMessageProducer implements SerialMessageProducer {
     }
 
     @Override
-    public void wantPressureFault(int stationId, char v) {
+    public void resetFaults() {
     }
 
     @Override
-    public void wantLeakFault(int stationId, char v) {
+    public void wantPressureFault(int stationId, String v) {
+    }
+
+    @Override
+    public void wantLeakFault(int stationId, String v) {
     }
 
     @Override
