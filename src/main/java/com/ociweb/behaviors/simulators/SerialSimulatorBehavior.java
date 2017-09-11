@@ -7,6 +7,8 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.pipe.BlobWriter;
 
+import java.util.Scanner;
+
 import static com.ociweb.iot.maker.FogCommandChannel.SERIAL_WRITER;
 
 public class SerialSimulatorBehavior implements TimeListener, PubSubMethodListener {
@@ -21,23 +23,26 @@ public class SerialSimulatorBehavior implements TimeListener, PubSubMethodListen
     private final int limit = Integer.MAX_VALUE;
 
     public boolean wantPressureFault(CharSequence charSequence, BlobReader messageReader) {
-        int stationId = messageReader.readInt();
-        char v = (char)messageReader.readByte();
+        String str = messageReader.readUTFOfLength(messageReader.available());
+        int stationId = Integer.parseInt(str.substring(0, 1));
+        char v = str.substring(1, 2).charAt(0);
         producer.wantPressureFault(stationId, v);
         return true;
     }
 
     public boolean wantLeakFault(CharSequence charSequence, BlobReader messageReader) {
-        int stationId = messageReader.readInt();
-        char v = (char)messageReader.readByte();
+        String str = messageReader.readUTFOfLength(messageReader.available());
+        int stationId = Integer.parseInt(str.substring(0, 1));
+        char v = str.substring(1, 2).charAt(0);
         producer.wantLeakFault(stationId, v);
         return true;
 
     }
 
     public boolean wantCycleFault(CharSequence charSequence, BlobReader messageReader) {
-        int stationId = messageReader.readInt();
-        int cycleCountLimitIn = messageReader.readInt();
+        String str = messageReader.readUTFOfLength(messageReader.available());
+        int stationId = Integer.parseInt(str.substring(0, 1));
+        int cycleCountLimitIn = Integer.parseInt(str.substring(2));
         producer.wantCycleFault(stationId, cycleCountLimitIn);
         return true;
     }

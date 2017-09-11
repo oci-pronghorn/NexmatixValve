@@ -117,8 +117,10 @@ public class DecentMessageProducer implements SerialMessageProducer {
         Integer sn = s.installedValves.get(stationId);
         if (sn != null) {
             int idx = contains(pressureFaultEnum, v);
-            s.pressureFaults.put(sn, idx);
-            System.out.println(String.format("*) Pressure Fault %d, %d %s", stationId + 1, sn, pressureFaultEnum[idx]));
+            if (idx != -1) {
+                s.pressureFaults.put(sn, idx);
+                System.out.println(String.format("*) Pressure Fault %d, %d %s", stationId + 1, sn, pressureFaultEnum[idx]));
+            }
         }
     }
 
@@ -127,8 +129,10 @@ public class DecentMessageProducer implements SerialMessageProducer {
         Integer sn = s.installedValves.get(stationId);
         if (sn != null) {
             int idx = contains(leakDetectedEnum, v);
-            s.leakFaults.put(sn, idx);
-            System.out.println(String.format("*) Leak Fault %d %d %s", stationId + 1, sn, leakDetectedEnum[idx]));
+            if (idx != -1) {
+                s.leakFaults.put(sn, idx);
+                System.out.println(String.format("*) Leak Fault %d %d %s", stationId + 1, sn, leakDetectedEnum[idx]));
+            }
         }
     }
 

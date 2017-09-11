@@ -37,7 +37,7 @@ public class NexmatixValve implements FogApp
         final String prefix = "m" + manifoldNumber + "/";
         final String fp = "fault/pressure";
         final String fl = "fault/leak";
-        final String fc = "fault/cycleCount";
+        final String fc = "fault/cycle";
 
         runtime.bridgeSubscription(fp, prefix + fp, controlBridge);
         runtime.bridgeSubscription(fl, prefix + fl, controlBridge);
