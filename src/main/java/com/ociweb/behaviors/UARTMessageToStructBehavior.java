@@ -5,10 +5,7 @@ import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.pipe.BlobReader;
-import com.ociweb.schema.FieldType;
-import com.ociweb.schema.MessageScheme;
-import com.ociweb.schema.MsgField;
-import com.ociweb.schema.ValveStatus;
+import com.ociweb.schema.*;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -20,7 +17,9 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
     private final int manifoldNumber;
     private final String publishTopic;
     private final boolean isStatus;
-    private final ValveStatus recycleMe = new ValveStatus();
+    private final ValveStatus recycleStatus;
+    private final ValveConfig recycleConfig;
+    private final Object recycleMe;
     private final GreenReader reader = MessageScheme.buildParser().newReader();
 
     public UARTMessageToStructBehavior(FogRuntime runtime, int manifoldNumber, String publishTopic, boolean isStatus) {
@@ -28,13 +27,15 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
         this.manifoldNumber = manifoldNumber;
         this.publishTopic = publishTopic;
         this.isStatus = isStatus;
+        this.recycleStatus = isStatus ? new ValveStatus() : null;
+        this.recycleConfig = !isStatus ? new ValveConfig() : null;
+        this.recycleMe = isStatus ? recycleStatus : recycleConfig;
     }
 
     @Override
     public boolean message(CharSequence charSequence, BlobReader blobReader) {
         final long timeStamp = blobReader.readLong();
         final short messageLength = blobReader.readShort();
-        int stationId = -1;
         while (reader.hasMore()) {
             int parsedId = (int)reader.readToken();
             if (parsedId == -1) {
@@ -47,14 +48,9 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
 
                 String key = msgField.jsonKey;
                 final FieldType fieldType = msgField.type;
-                // instead of switching on type use lambdas in schema
                 switch (fieldType) {
                     case integer: {
                         int value = (int) reader.extractedLong(0);
-                        if (parsedId == 0) {
-                            value = value + 1;
-                            stationId = value;
-                        }
                         break;
                     }
                     case int64: {
@@ -74,7 +70,7 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
             }
         }
 
-        cmd.publishTopic(publishTopic, blobWriter -> {blobWriter.write(recycleMe);});
+        cmd.publishTopic(publishTopic, blobWriter -> {blobWriter.writeObject(recycleMe);});
         return true;
     }
 }

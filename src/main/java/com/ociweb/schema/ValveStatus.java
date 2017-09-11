@@ -1,19 +1,27 @@
 package com.ociweb.schema;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+public final class ValveStatus implements java.io.Serializable {
+  public int valveSerialNumber;
+  public long timeStamp;
+  public int stationNumber;
+  public int cycleCountLimit;
+  public int cycleCount;
+  public float pressurePoint;
+  public String pressureFault;
+  public String detectedLeak;
+  public String input;
 
-public class ValveStatus implements Externalizable {
+  public ValveStatus() {}
 
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-
-    }
-
-    @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-
-    }
+  public ValveStatus(int _valveSerialNumber, long _timeStamp, int _stationNumber, int _cycleCountLimit, int _cycleCount, float _pressurePoint, String _pressureFault, String _detectedLeak, String _input) {
+    valveSerialNumber = _valveSerialNumber;
+    timeStamp = _timeStamp;
+    stationNumber = _stationNumber;
+    cycleCountLimit = _cycleCountLimit;
+    cycleCount = _cycleCount;
+    pressurePoint = _pressurePoint;
+    pressureFault = _pressureFault;
+    detectedLeak = _detectedLeak;
+    input = _input;
+  }
 }
