@@ -46,7 +46,7 @@ public class NexmatixValve implements FogApp
         runtime.bridgeSubscription(fc, prefix + fc, controlBridge);
 
         // Register the serial simulator
-        DecentMessageProducer producer = new DecentMessageProducer(manifoldNumber, true);
+        DecentMessageProducer producer = new DecentMessageProducer(manifoldNumber, false);
         int installedCount = producer.getInstalledCount();
         SerialSimulatorBehavior serialSim = new SerialSimulatorBehavior(runtime, producer);
         runtime.registerListener(serialSim)

@@ -60,7 +60,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
     private final static double maxPsi = 120.0;
 
     private final int manifoldNumber;
-    private final boolean remoteControlled;
+    private final boolean simulateFaults;
     private DecentMessageState s;
 
     public static <T> int contains(final T[] array, final T v) {
@@ -84,9 +84,9 @@ public class DecentMessageProducer implements SerialMessageProducer {
         return -1;
     }
 
-    public DecentMessageProducer(int manifoldNumber, boolean remoteControlled) {
+    public DecentMessageProducer(int manifoldNumber, boolean simulateFaults) {
         this.manifoldNumber = manifoldNumber;
-        this.remoteControlled = remoteControlled;
+        this.simulateFaults = simulateFaults;
 
         DecentMessageState state;
         try {
@@ -130,7 +130,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
             int idx = contains(pressureFaultEnum, v);
             if (idx != -1) {
                 s.pressureFaults.put(sn, idx);
-                System.out.println(String.format("*) Pressure Fault %d, %d %s", stationId + 1, sn, pressureFaultEnum[idx]));
+                System.out.println(String.format("\n***) Pressure Fault %d, %d %s\n", stationId + 1, sn, pressureFaultEnum[idx]));
             }
         }
     }
@@ -142,7 +142,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
             int idx = contains(leakDetectedEnum, v);
             if (idx != -1) {
                 s.leakFaults.put(sn, idx);
-                System.out.println(String.format("*) Leak Fault %d %d %s", stationId + 1, sn, leakDetectedEnum[idx]));
+                System.out.println(String.format("\n***) Leak Fault %d %d %s\n", stationId + 1, sn, leakDetectedEnum[idx]));
             }
         }
     }
@@ -154,6 +154,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
             Integer cc = s.cycleCounts.get(sn);
             if (cc != null) {
                 s.cycleCountLimits.put(sn, cc + cycleCountLimitIn);
+                System.out.println(String.format("\n***) Cycle Fault %d %d %d %d\n", stationId + 1, sn, cc, cc + cycleCountLimitIn));
             }
         }
     }
@@ -220,7 +221,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 if (sn != null) {
                     c = s.cycleCounts.get(sn);
                     if (c == null) {
-                        if (!remoteControlled && stationId == s.installedStationIds.get(s.cfIdx)) {
+                        if (simulateFaults && stationId == s.installedStationIds.get(s.cfIdx)) {
                             Integer ccl = s.cycleCountLimits.get(sn);
                             if (ccl != null) {
                                 c = ccl - 10;
@@ -274,7 +275,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
             case "pf": { // PressureFault
                 int idx = 0;
                 if (stationId == s.installedStationIds.get(s.pfIdx)) {
-                    if (remoteControlled) {
+                    if (!simulateFaults) {
                         Integer sn = s.installedValves.get(stationId);
                         if (sn != null) {
                             idx = s.pressureFaults.computeIfAbsent(sn, k -> 0);
@@ -292,7 +293,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                                 } else {
                                     idx = ThreadLocalRandom.current().nextInt(1, pressureFaultEnum.length);
                                 }
-                                System.out.println(String.format("*) Pressure Fault %d, %d %s", stationId + 1, sn, pressureFaultEnum[idx]));
+                                System.out.println(String.format("\n***) Pressure Fault %d, %d %s\n", stationId + 1, sn, pressureFaultEnum[idx]));
                                 s.pressureFaults.put(sn, idx);
                             }
                             return pressureFaultEnum[idx];
@@ -304,7 +305,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
             case "ld": { // LeakDetection
                 int idx = 0;
                 if (stationId == s.installedStationIds.get(s.lfIdx)) {
-                    if (remoteControlled) {
+                    if (!simulateFaults) {
                         Integer sn = s.installedValves.get(stationId);
                         if (sn != null) {
                             idx = s.leakFaults.computeIfAbsent(sn, k -> 0);
@@ -322,7 +323,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
                                 } else {
                                     idx = ThreadLocalRandom.current().nextInt(1, leakDetectedEnum.length);
                                 }
-                                System.out.println(String.format("*) Leak Fault %d %d %s", stationId + 1, sn, leakDetectedEnum[idx]));
+                                System.out.println(String.format("\n***) Leak Fault %d %d %s\n", stationId + 1, sn, leakDetectedEnum[idx]));
                                 s.leakFaults.put(sn, idx);
                             }
                         }

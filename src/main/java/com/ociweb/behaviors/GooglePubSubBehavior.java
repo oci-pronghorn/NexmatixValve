@@ -63,7 +63,7 @@ public class GooglePubSubBehavior implements PubSubListener, StartupListener, Sh
             long thisTime = System.currentTimeMillis();
             long duration = (thisTime - lastTime);
             lastTime = thisTime;
-            //theGoogleWay(json);
+            theGoogleWay(json);
             System.out.println(String.format("D.%s.%d) sent %d", publishTopic, counter, duration));
         }
         else {
