@@ -41,14 +41,13 @@ public class NexmatixValve implements FogApp
         runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_CONFIG", false, installedCount)).addSubscription("UART");
 
         // Register the DDS converter
-        runtime.registerListener(new UARTMessageToStructBehavior(runtime, manifoldNumber, "DDS_STATUS", true)).addSubscription("UART");
-        runtime.registerListener(new UARTMessageToStructBehavior(runtime, manifoldNumber, "DDS_CONFIG", false)).addSubscription("UART");
+        runtime.registerListener(new UARTMessageToStructBehavior(runtime, manifoldNumber, "DDS")).addSubscription("UART");
 
         // Register Google Pub Sub
         runtime.registerListener(new GooglePubSubBehavior(googleProjectId, runtime, "manifold-state", 1)).addSubscription("JSON_STATUS");
         runtime.registerListener(new GooglePubSubBehavior(googleProjectId, runtime, "manifold-configuration", 60)).addSubscription("JSON_CONFIG");
 
-        //runtime.bridgeTransmission("DDS_STATUS", "manifold-state", this.ddsBridge);
-        //runtime.bridgeTransmission("DDS_CONFIG", "manifold-configuration", this.ddsBridge);
+        runtime.registerListener(new DDSBroadcastValve()).addSubscription("DDS");
+        //runtime.bridgeTransmission("DDS", this.ddsBridge);
     }
 }
