@@ -1,5 +1,6 @@
 package com.ociweb.behaviors;
 
+import Nexmatix.ValveData;
 import com.ociweb.gl.api.GreenReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -16,21 +17,20 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
     private final FogCommandChannel cmd;
     private final int manifoldNumber;
     private final String publishTopic;
-    private final ValveConfig config;
+    private final ValveData valveData;
     private final GreenReader reader = MessageScheme.buildParser().newReader();
 
     public UARTMessageToStructBehavior(FogRuntime runtime, int manifoldNumber, String publishTopic) {
         this.cmd = runtime.newCommandChannel(DYNAMIC_MESSAGING);
         this.manifoldNumber = manifoldNumber;
         this.publishTopic = publishTopic;
-        this.config = new ValveConfig();
+        this.valveData = new ValveData();
     }
 
     @Override
     public boolean message(CharSequence charSequence, BlobReader blobReader) {
         final long timeStamp = blobReader.readLong();
         final short messageLength = blobReader.readShort();
-        // TODO: populate this.config
         while (reader.hasMore()) {
             int parsedId = (int)reader.readToken();
             if (parsedId == -1) {
@@ -45,30 +45,30 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
                 switch (fieldType) {
                     case integer: {
                         int value = (int) reader.extractedLong(0);
-                        msgField.setValve.accept(config, value);
+                        msgField.setValve.accept(valveData, value);
                         break;
                     }
                     case int64: {
                         long value = reader.extractedLong(0);
-                        msgField.setValve.accept(config, value);
+                        msgField.setValve.accept(valveData, value);
                         break;
                     }
                     case string: {
                         StringBuilder builder = new StringBuilder();
                         reader.copyExtractedUTF8ToAppendable(0, builder);
-                        msgField.setValve.accept(config, builder.toString());
+                        msgField.setValve.accept(valveData, builder.toString());
                         break;
                     }
                     case floatingPoint: {
                         double value = reader.extractedDouble(0);
-                        msgField.setValve.accept(config, value);
+                        msgField.setValve.accept(valveData, value);
                         break;
                     }
                 }
             }
         }
 
-        cmd.publishTopic(publishTopic, blobWriter -> {blobWriter.writeObject(config);});
+        cmd.publishTopic(publishTopic, blobWriter -> {blobWriter.writeObject(valveData);});
         return true;
     }
 }
