@@ -20,6 +20,38 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
     private final ValveData valveData;
     private final GreenReader reader = MessageScheme.buildParser().newReader();
 
+    /*
+    Nexmatix::ValveData {
+        // "st": StationId
+        // "sn": SerialNumber
+        // "pn": ProductNumber
+        // "cl": CycleCountLimit
+        // "cc": CycleCount
+        // "pp": PressurePoint
+        // "fd": Fabrication Date
+        // "sd": Shipment Date
+        // "pf": PressureFault
+        // "ld": LeakDetection
+        // "in": InputState
+
+        public int manifoldId;                   // nil
+        public int stationId;                    // "st"
+        public int valveSerialId;                // nil
+        public String partNumber;                // nil
+        public boolean leakFault;                // nil
+        public PresureFault pressureFault;       // "pf"
+        public boolean valveFault;               // nil
+        public int cycles;                       // "cc"
+        public int pressure;                     // nil
+        public int durationLast12;               // nil
+        public int durationLast14;               // nil
+        public int equalizationAveragePressure;  // nil
+        public int equalizationPressureRate;     // nil
+        public int residualOfDynamicAnalysis;    // nil
+        public int suppliedPressure;             // nil
+    }
+    */
+
     public UARTMessageToStructBehavior(FogRuntime runtime, int manifoldNumber, String publishTopic) {
         this.cmd = runtime.newCommandChannel(DYNAMIC_MESSAGING);
         this.manifoldNumber = manifoldNumber;
@@ -68,7 +100,10 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
             }
         }
 
-        cmd.publishTopic(publishTopic, blobWriter -> {blobWriter.writeObject(valveData);});
+        cmd.publishTopic(publishTopic, blobWriter -> {
+            blobWriter.writeObject(valveData);
+        });
+
         return true;
     }
 }
