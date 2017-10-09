@@ -148,7 +148,7 @@ public class DDSBroadcastValve implements PubSubListener {
             return false;
         }
 
-        System.out.println("Publisher Created DataWriter");
+        //System.out.println("Publisher Created DataWriter");
 
         //Publish only if there is a subscriber
 
