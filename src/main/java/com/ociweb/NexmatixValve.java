@@ -8,6 +8,7 @@ import com.ociweb.behaviors.*;
 import com.ociweb.gl.api.MQTTBridge;
 import com.ociweb.iot.maker.*;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -24,7 +25,7 @@ public class NexmatixValve implements FogApp
     // place native opendds dynamic libs in project current working directory
     static {
         try {
-            String osName = System.getProperty("os.name").toLowerCase();
+            final String osName = System.getProperty("os.name").toLowerCase();
             String nativeJarName  = null;
             String libExtension = null;
             if (osName.contains("mac")) {
@@ -44,10 +45,10 @@ public class NexmatixValve implements FogApp
                 System.out.println( nativeJarName + " contains native libaries for " + osName);
             }
 
-            String currentWorkingDirString = Paths.get("").toAbsolutePath().normalize().toString();
-            Path jarFilePath = Paths.get(currentWorkingDirString,nativeJarName);
+            final String currentWorkingDirString = Paths.get("").toAbsolutePath().normalize().toString();
+            final Path jarFilePath = Paths.get(currentWorkingDirString, nativeJarName);
             Files.deleteIfExists(jarFilePath);
-            InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(nativeJarName);
+            final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(nativeJarName);
             Files.copy(stream, jarFilePath);
             stream.close();
 
@@ -57,19 +58,21 @@ public class NexmatixValve implements FogApp
                 JarFile jar = new JarFile(jarFilePath.toString());
                 for (Enumeration<JarEntry> enumEntries = jar.entries(); enumEntries.hasMoreElements();) {
                     final JarEntry entry = enumEntries.nextElement();
-                    String key = entry.getName().substring(0, entry.getName().indexOf(".")).toLowerCase();
+                    final int startIndex = 0;
+                    final int endIndex = entry.getName().indexOf(".");
+                    final String key = entry.getName().substring(startIndex, endIndex).toLowerCase();
+                    final Path dynamicLibPath = Paths.get(currentWorkingDirString, entry.getName());
                     libFileNameMap.put(key, entry.getName());
-                    Path dynamicLibPath = Paths.get(currentWorkingDirString, entry.getName());
                     Files.deleteIfExists(dynamicLibPath);
                     Files.copy(jar.getInputStream(entry), dynamicLibPath);
                 }
                 jar.close();
 
-                //items.forEach((id, val) -> System.out.println(id + ":" + val));
+                //libFileNameMap.forEach((id, val) -> System.out.println(id + ":" + val));
 
                 // load dynamic libraries with path to current directory to
                 // support rpath location mechanism to resolve to unpacked library path
-                String libs[] = {
+                final String libs[] = {
                         "libACE",
                         "libTAO",
                         "libTAO_AnyTypeCode",
@@ -89,7 +92,7 @@ public class NexmatixValve implements FogApp
                 for (String lib: libs) {
                     final String key = lib.toLowerCase();
                     if (libFileNameMap.containsKey(key)) {
-                        String libFileName = libFileNameMap.get(key);
+                        final String libFileName = libFileNameMap.get(key);
                         System.out.println("Loading: " + libFileName);
                         System.load(Paths.get(currentWorkingDirString, libFileName).toAbsolutePath().normalize().toString());
                     } else {
