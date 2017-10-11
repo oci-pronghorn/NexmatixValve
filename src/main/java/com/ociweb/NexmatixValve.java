@@ -14,6 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -51,14 +53,19 @@ public class NexmatixValve implements FogApp
 
             if(Files.exists(jarFilePath)) {
                 // unpack Jar to cwd
+                Map<String, String> libFileNameMap = new HashMap<>();
                 JarFile jar = new JarFile(jarFilePath.toString());
                 for (Enumeration<JarEntry> enumEntries = jar.entries(); enumEntries.hasMoreElements();) {
-                    JarEntry entry = enumEntries.nextElement();
+                    final JarEntry entry = enumEntries.nextElement();
+                    String key = entry.getName().substring(0, entry.getName().indexOf(".")).toLowerCase();
+                    libFileNameMap.put(key, entry.getName());
                     Path dynamicLibPath = Paths.get(currentWorkingDirString, entry.getName());
                     Files.deleteIfExists(dynamicLibPath);
                     Files.copy(jar.getInputStream(entry), dynamicLibPath);
                 }
                 jar.close();
+
+                //items.forEach((id, val) -> System.out.println(id + ":" + val));
 
                 // load dynamic libraries with path to current directory to
                 // support rpath location mechanism to resolve to unpacked library path
@@ -80,8 +87,14 @@ public class NexmatixValve implements FogApp
                         "libOpenDDS_DCPS_Java"
                 };
                 for (String lib: libs) {
-                    System.out.println("Loading: " + lib);
-                    System.load(Paths.get(currentWorkingDirString, lib+libExtension).toAbsolutePath().normalize().toString());
+                    final String key = lib.toLowerCase();
+                    if (libFileNameMap.containsKey(key)) {
+                        String libFileName = libFileNameMap.get(key);
+                        System.out.println("Loading: " + libFileName);
+                        System.load(Paths.get(currentWorkingDirString, libFileName).toAbsolutePath().normalize().toString());
+                    } else {
+                        System.out.println("Skipping: " + lib);
+                    }
                 }
             }
 
