@@ -4,7 +4,7 @@ import com.ociweb.gl.api.GreenReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
 import com.ociweb.schema.MsgField;
@@ -40,7 +40,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
     }
 
     @Override
-    public boolean message(CharSequence charSequence, BlobReader messageReader) {
+    public boolean message(CharSequence charSequence, ChannelReader messageReader) {
         NumberFormat formatter = new DecimalFormat("#0.0000");
         final long timeStamp = messageReader.readLong();
         //StringBuilder a = new StringBuilder();

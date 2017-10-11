@@ -27,16 +27,12 @@ public class NexmatixValve implements FogApp
         try {
             final String osName = System.getProperty("os.name").toLowerCase();
             String nativeJarName  = null;
-            String libExtension = null;
             if (osName.contains("mac")) {
-                nativeJarName = new String("OpenDDSDarwin.jar");
-                libExtension= new String(".dylib");
+                nativeJarName = "OpenDDSDarwin.jar";
             } else if (osName.contains("linux")) {
-                nativeJarName = new String("OpenDDSLinux.jar");
-                libExtension= new String(".so");
+                nativeJarName = "OpenDDSLinux.jar";
             } else if (osName.contains("Windows")) {
-                nativeJarName = new String("OpenDDSWindows.jar");
-                libExtension= new String(".dll");
+                nativeJarName = "OpenDDSWindows.jar";
             }
 
             if (nativeJarName == null) {

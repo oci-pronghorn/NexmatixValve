@@ -3,7 +3,7 @@ package com.ociweb.behaviors;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.SerialListener;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 import static com.ociweb.schema.MessageScheme.messageSize;
 
@@ -28,7 +28,7 @@ public class UARTMessageWindowBehavior implements SerialListener {
     }
 
     @Override
-    public int message(BlobReader serialReader) {
+    public int message(ChannelReader serialReader) {
         // Read what we can
         final int len = serialReader.read(buffer);
         // Find beginning of message

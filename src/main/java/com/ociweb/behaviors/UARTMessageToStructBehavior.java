@@ -5,7 +5,7 @@ import com.ociweb.gl.api.GreenReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.schema.*;
 
 import java.io.Externalizable;
@@ -60,7 +60,7 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
     }
 
     @Override
-    public boolean message(CharSequence charSequence, BlobReader blobReader) {
+    public boolean message(CharSequence charSequence, ChannelReader blobReader) {
         final long timeStamp = blobReader.readLong();
         final short messageLength = blobReader.readShort();
         while (reader.hasMore()) {

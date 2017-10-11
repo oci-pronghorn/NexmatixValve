@@ -1,7 +1,7 @@
 package com.ociweb.behaviors;
 
 import com.ociweb.gl.api.PubSubListener;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 import OpenDDS.DCPS.*;
 import DDS.*;
 import org.omg.CORBA.StringSeqHolder;
@@ -33,8 +33,8 @@ public class DDSBroadcastValve implements PubSubListener {
         return false;
     }
 
-    public boolean message(CharSequence charSequence, BlobReader blobReader) {
-        ValveData valveData = (ValveData)blobReader.readObject();
+    public boolean message(CharSequence charSequence, ChannelReader channelReader) {
+        ValveData valveData = (ValveData)channelReader.readObject();
 
         // TODO add DDS configuration
         // -DCPSBit 0 -DCPSConfigFile rtps_disc.ini -r -w
