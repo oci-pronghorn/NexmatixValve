@@ -6,7 +6,6 @@ import com.ociweb.gl.api.StartupListener;
 import com.ociweb.pronghorn.pipe.ChannelReader;
 import OpenDDS.DCPS.*;
 import DDS.*;
-import com.sun.org.apache.bcel.internal.generic.RET;
 import org.omg.CORBA.StringSeqHolder;
 import Nexmatix.*;
 import java.util.ArrayList;
