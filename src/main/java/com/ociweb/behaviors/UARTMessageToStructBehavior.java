@@ -60,9 +60,9 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
     }
 
     @Override
-    public boolean message(CharSequence charSequence, ChannelReader blobReader) {
-        final long timeStamp = blobReader.readLong();
-        final short messageLength = blobReader.readShort();
+    public boolean message(CharSequence charSequence, ChannelReader channelReader) {
+        final long timeStamp = channelReader.readLong();
+        final short messageLength = channelReader.readShort();
         while (reader.hasMore()) {
             int parsedId = (int)reader.readToken();
             if (parsedId == -1) {
@@ -100,8 +100,8 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
             }
         }
 
-        cmd.publishTopic(publishTopic, blobWriter -> {
-            blobWriter.writeObject(valveData);
+        cmd.publishTopic(publishTopic, channelWriter -> {
+            channelWriter.writeObject(valveData);
         });
 
         return true;
