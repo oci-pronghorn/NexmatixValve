@@ -15,7 +15,6 @@ import java.io.ObjectOutput;
 
 public class UARTMessageToStructBehavior  implements PubSubListener {
     private final FogCommandChannel cmd;
-    private final int manifoldNumber;
     private final String publishTopic;
     private final ValveData valveData;
     private final GreenReader reader = MessageScheme.buildParser().newReader();
@@ -54,9 +53,9 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
 
     public UARTMessageToStructBehavior(FogRuntime runtime, int manifoldNumber, String publishTopic) {
         this.cmd = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-        this.manifoldNumber = manifoldNumber;
         this.publishTopic = publishTopic;
         this.valveData = new ValveData();
+        this.valveData.manifoldId = manifoldNumber;
     }
 
     @Override
