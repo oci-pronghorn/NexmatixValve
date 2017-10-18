@@ -63,6 +63,7 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
     public boolean message(CharSequence charSequence, ChannelReader channelReader) {
         final long timeStamp = channelReader.readLong();
         final short messageLength = channelReader.readShort();
+        reader.beginRead(channelReader);
         while (reader.hasMore()) {
             int parsedId = (int)reader.readToken();
             if (parsedId == -1) {
@@ -70,9 +71,10 @@ public class UARTMessageToStructBehavior  implements PubSubListener {
             }
             else {
                 MsgField msgField = MessageScheme.messages[parsedId];
-                if (msgField.setValve == null) continue;
+                if (msgField.setValve == null) {
+                    continue;
+                }
 
-                String key = msgField.jsonKey;
                 final FieldType fieldType = msgField.type;
                 switch (fieldType) {
                     case integer: {
