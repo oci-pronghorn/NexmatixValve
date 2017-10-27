@@ -34,13 +34,21 @@ public class DDSBroadcastValve implements PubSubListener, StartupListener, Shutd
         list.add("0");
         list.add("-DCPSConfigFile");
         list.add("rtps_disc.ini");
+        list.add("-ORBVerboseLogging");
+        list.add("5");
+        list.add("-DCPSTransportDebugLevel=3");
         String[] stringArray = list.toArray(new String[0]);
+
+        //OpenDDS.DCPS.TheParticipantFactory.getInstance().s   set_DCPS_debug_level(5);
+
 
         domainParticipantFactory = TheParticipantFactory.WithArgs(new StringSeqHolder(stringArray));
         if (domainParticipantFactory == null) {
             System.err.println("ERROR: Domain Participant Factory not found: " + (System.currentTimeMillis() - startTime));
             return;
         }
+
+        //OpenDDS::DCPS::Transport_debug_level = 3;
 
         domainParticipant = domainParticipantFactory.create_participant(
                 VAlVE_DOMAIN_ID,
@@ -87,12 +95,61 @@ public class DDSBroadcastValve implements PubSubListener, StartupListener, Shutd
             return;
         }
 
-        setPublisherQOS(publisher);
+        //setPublisherQOS(publisher);
+        DataWriterQos dataWriterQos = new DataWriterQos();
 
-        //if (true == setPublisherQOS(publisher)){ }
+        dataWriterQos.durability = new DurabilityQosPolicy();
+        dataWriterQos.durability.kind = DurabilityQosPolicyKind.VOLATILE_DURABILITY_QOS;
+
+        dataWriterQos.durability_service = new DurabilityServiceQosPolicy();
+        dataWriterQos.durability_service.history_kind = HistoryQosPolicyKind.KEEP_LAST_HISTORY_QOS;
+        dataWriterQos.durability_service.service_cleanup_delay = new Duration_t();
+
+        dataWriterQos.deadline = new DeadlineQosPolicy();
+        dataWriterQos.deadline.period = new Duration_t();
+
+        dataWriterQos.latency_budget = new LatencyBudgetQosPolicy();
+        dataWriterQos.latency_budget.duration = new Duration_t();
+
+        dataWriterQos.liveliness = new LivelinessQosPolicy();
+        dataWriterQos.liveliness.kind = LivelinessQosPolicyKind.AUTOMATIC_LIVELINESS_QOS;
+        dataWriterQos.liveliness.lease_duration = new Duration_t();
+
+        dataWriterQos.reliability = new ReliabilityQosPolicy();
+        dataWriterQos.reliability.kind = ReliabilityQosPolicyKind.BEST_EFFORT_RELIABILITY_QOS;
+        dataWriterQos.reliability.max_blocking_time = new Duration_t();
+
+        dataWriterQos.destination_order = new DestinationOrderQosPolicy();
+        dataWriterQos.destination_order.kind = DestinationOrderQosPolicyKind.BY_RECEPTION_TIMESTAMP_DESTINATIONORDER_QOS;
+
+        dataWriterQos.history = new HistoryQosPolicy();
+        dataWriterQos.history.kind = HistoryQosPolicyKind.KEEP_LAST_HISTORY_QOS;
+
+        dataWriterQos.resource_limits = new ResourceLimitsQosPolicy();
+        dataWriterQos.transport_priority = new TransportPriorityQosPolicy();
+
+        dataWriterQos.lifespan = new LifespanQosPolicy();
+        dataWriterQos.lifespan.duration = new Duration_t();
+
+        dataWriterQos.user_data = new UserDataQosPolicy();
+        dataWriterQos.user_data.value = new byte[0];
+
+        dataWriterQos.ownership = new OwnershipQosPolicy();
+        dataWriterQos.ownership.kind = OwnershipQosPolicyKind.SHARED_OWNERSHIP_QOS;
+
+        dataWriterQos.ownership_strength = new OwnershipStrengthQosPolicy();
+        dataWriterQos.writer_data_lifecycle = new WriterDataLifecycleQosPolicy();
+
+        dataWriterQosHolder = new DataWriterQosHolder(dataWriterQos);
+        if (dataWriterQosHolder != null) {
+            //Need to pass dataWriterQosHolder will non null members due to in/out semantics of IDL call
+            publisher.get_default_datawriter_qos(dataWriterQosHolder);
+            dataWriterQosHolder.value.durability.kind = DurabilityQosPolicyKind.TRANSIENT_LOCAL_DURABILITY_QOS;
+        }
+
         dataWriter = publisher.create_datawriter(
             topic,
-            DATAWRITER_QOS_DEFAULT.get(),
+            dataWriterQosHolder.value,
             null,
             DEFAULT_STATUS_MASK.value
         );
@@ -104,6 +161,7 @@ public class DDSBroadcastValve implements PubSubListener, StartupListener, Shutd
         System.out.println("Total execution time: " + (System.currentTimeMillis() - startTime) );
     }
 
+    /*
     private boolean setPublisherQOS(Publisher publisher) {
         if (publisher != null) {
             // Use the default transport configuration (do nothing)
@@ -111,10 +169,10 @@ public class DDSBroadcastValve implements PubSubListener, StartupListener, Shutd
             DataWriterQos dataWriterQos = new DataWriterQos();
 
             dataWriterQos.durability = new DurabilityQosPolicy();
-            dataWriterQos.durability.kind = DurabilityQosPolicyKind.from_int(0);
+            dataWriterQos.durability.kind = DurabilityQosPolicyKind.VOLATILE_DURABILITY_QOS;
 
             dataWriterQos.durability_service = new DurabilityServiceQosPolicy();
-            dataWriterQos.durability_service.history_kind = HistoryQosPolicyKind.from_int(0);
+            dataWriterQos.durability_service.history_kind = HistoryQosPolicyKind.KEEP_LAST_HISTORY_QOS;
             dataWriterQos.durability_service.service_cleanup_delay = new Duration_t();
 
             dataWriterQos.deadline = new DeadlineQosPolicy();
@@ -124,11 +182,11 @@ public class DDSBroadcastValve implements PubSubListener, StartupListener, Shutd
             dataWriterQos.latency_budget.duration = new Duration_t();
 
             dataWriterQos.liveliness = new LivelinessQosPolicy();
-            dataWriterQos.liveliness.kind = LivelinessQosPolicyKind.from_int(0);
+            dataWriterQos.liveliness.kind = LivelinessQosPolicyKind.AUTOMATIC_LIVELINESS_QOS;
             dataWriterQos.liveliness.lease_duration = new Duration_t();
 
             dataWriterQos.reliability = new ReliabilityQosPolicy();
-            dataWriterQos.reliability.kind = ReliabilityQosPolicyKind.from_int(0);
+            dataWriterQos.reliability.kind = ReliabilityQosPolicyKind.BEST_EFFORT_RELIABILITY_QOS;
             dataWriterQos.reliability.max_blocking_time = new Duration_t();
 
             dataWriterQos.destination_order = new DestinationOrderQosPolicy();
@@ -156,13 +214,17 @@ public class DDSBroadcastValve implements PubSubListener, StartupListener, Shutd
             if (dataWriterQosHolder != null) {
                 //Need to pass dataWriterQosHolder will non null members due to in/out semantics of IDL call
                 publisher.get_default_datawriter_qos(dataWriterQosHolder);
-                dataWriterQosHolder.value.history.kind = HistoryQosPolicyKind.KEEP_ALL_HISTORY_QOS;
-                dataWriterQosHolder.value.reliability.kind = ReliabilityQosPolicyKind.RELIABLE_RELIABILITY_QOS;
+                //dataWriterQosHolder.value.history.kind = HistoryQosPolicyKind.KEEP_ALL_HISTORY_QOS;
+                //dataWriterQosHolder.value.reliability.kind = ReliabilityQosPolicyKind.RELIABLE_RELIABILITY_QOS;
+                dataWriterQosHolder.value.durability.kind = DurabilityQosPolicyKind.TRANSIENT_LOCAL_DURABILITY_QOS;
+                dataWriterQosHolder.value.durability.kind = DurabilityQosPolicyKind.TRANSIENT_LOCAL_DURABILITY_QOS;
+
                 return true;
             }
         }
         return false;
     }
+*/
     private void initValveData(ValveData valveData){
 //            public int manifoldId;                   // nil
 //            public int stationId;                    // "st"
@@ -200,7 +262,7 @@ public class DDSBroadcastValve implements PubSubListener, StartupListener, Shutd
         System.out.println("valveSerialId:" + valveData.valveSerialId);
         System.out.println("partNumber:" + valveData.partNumber);
         System.out.println("leakFault:" + valveData.leakFault);
-        System.out.println("pressureFault:" + valveData.pressureFault.toString());
+        System.out.println("pressureFault:" + valveData.pressureFault.value());
         System.out.println("cycles:" + valveData.cycles);
         System.out.println("pressure:" + valveData.pressure);
         System.out.println("durationLast12:" + valveData.durationLast12);
@@ -214,8 +276,8 @@ public class DDSBroadcastValve implements PubSubListener, StartupListener, Shutd
         boolean rc = false;
         if (this.dataWriter != null) {
             ValveData valveData = (ValveData)channelReader.readObject();
-            initValveData(valveData);
-            //printValveData(valveData);
+            //initValveData(valveData);
+            printValveData(valveData);
             ValveDataDataWriter valveDataDataWriter = ValveDataDataWriterHelper.narrow(this.dataWriter);
 
             if (valveDataDataWriter != null) {

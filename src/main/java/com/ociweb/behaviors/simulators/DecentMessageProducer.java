@@ -31,7 +31,7 @@ class DecentMessageState implements java.io.Serializable {
         installedStationIds = new ArrayList<>();
         final int maxStations = stationCount;
         for (int i = 0; i < maxStations; i++) {
-            boolean isInstalled = ThreadLocalRandom.current().nextInt(0, 2) == 1;
+            boolean isInstalled = ThreadLocalRandom.current().nextInt(0, 5) == 1;
             if (isInstalled) {
                 installedStationIds.add(i);
             }
