@@ -36,6 +36,36 @@ public class MessageScheme {
         valveData.cycles = (int)cycleCount;
     };
 
+    public static final BiConsumer<ValveData, Object> partNumberConsumer = (valveData, sku) -> {
+        valveData.partNumber = (String)sku;
+    };
+
+    public static final BiConsumer<ValveData, Object> pressureConsumer = (valveData, pp) -> {
+        valveData.pressure = (int)((double) pp);
+    };
+
+    public static final BiConsumer<ValveData, Object> valveSerialIdConsumer = (valveData, sn) -> {
+        valveData.valveSerialId = (int)sn;
+    };
+
+    public static final BiConsumer<ValveData, Object> leakFaultConsumer = (valveData, ld) ->  {
+        // "N", "P", "C"
+        switch ((String)ld)
+        {
+            case "N":
+                valveData.leakFault = false;
+                break;
+            case "P":
+                valveData.leakFault = true;
+                break;
+            case "C":
+                valveData.leakFault = true;
+                break;
+        }
+
+
+    };
+
     // TODO: inject setValve
     // TODO: add new fields
     /*
@@ -53,14 +83,14 @@ public class MessageScheme {
 
     Nexmatix::ValveData {
         public int manifoldId;                   // nil
-        public int stationId;                    // "st" -> stationIdConsumer
+        public int stationId;                    // "st"  -> stationIdConsumer
         public int valveSerialId;                // nil
-        public String partNumber;                // nil
-        public boolean leakFault;                // nil
-        public PresureFault pressureFault;       // "pf" -> pressureFaultConsumer
+        public String partNumber;                // "sku" -> partNumberConsumer
+        public boolean leakFault;                // "ld" -> leakFaultConsumer
+        public PresureFault pressureFault;       // "pf"  -> pressureFaultConsumer
         public boolean valveFault;               // nil
-        public int cycles;                       // "cc" -> cyclesConsumer
-        public int pressure;                     // nil
+        public int cycles;                       // "cc"  -> cyclesConsumer
+        public int pressure;                     // "pp"  -> pressureConsumer
         public int durationLast12;               // nil
         public int durationLast14;               // nil
         public int equalizationAveragePressure;  // nil
@@ -72,16 +102,16 @@ public class MessageScheme {
 
     public static final MsgField[] messages = new MsgField[]{
             new MsgField("st", integer, "station_num", true, true, stationIdConsumer),
-            new MsgField("sn", integer, "valve_sn", true, true, null),
+            new MsgField("sn", integer, "valve_sn", true, true, valveSerialIdConsumer),
             new MsgField("cl", integer, "ccl", true, true, null),
             new MsgField("cc", integer, "cc", true, false, cyclesConsumer),
-            new MsgField("pp", floatingPoint, "pp", true, false, null),
+            new MsgField("pp", floatingPoint, "pp", true, false, pressureConsumer),
             new MsgField("fd", int64, "fab_date", false, true, null),
             new MsgField("sd", int64, "ship_date", false, true, null),
             new MsgField("pf", string, "p_fault", true, false, pressureFaultConsumer),
-            new MsgField("ld", string, "leak", true, false, null),
+            new MsgField("ld", string, "leak", true, false, leakFaultConsumer),
             new MsgField("in", string, "input", true, false, null),
-            new MsgField("pn", string, "sku", false, true, null),
+            new MsgField("pn", string, "sku", false, true, partNumberConsumer),
     };
 
     public static GreenTokenMap buildParser() {
