@@ -16,12 +16,19 @@ public class MessageScheme {
     public static final int parseIdLimit = Math.min(11, 11);
 
     private static Map<String, PresureFault> pressureFaultEnum = null;
+    private static Map<String, Boolean> leakFaultEnum = null;
 
     static {
         pressureFaultEnum = new HashMap<>();
         pressureFaultEnum.put("N", PresureFault.NO_FAULT);
         pressureFaultEnum.put("H", PresureFault.HIGH);
         pressureFaultEnum.put("L", PresureFault.LOW);
+
+        leakFaultEnum = new HashMap<>();
+        leakFaultEnum.put("N", false);
+        leakFaultEnum.put("P", true);
+        leakFaultEnum.put("C", true);
+
     }
 
     public static final BiConsumer<ValveData, Object> stationIdConsumer = (valveData, stationId) -> {
@@ -36,34 +43,20 @@ public class MessageScheme {
         valveData.cycles = (int)cycleCount;
     };
 
-    public static final BiConsumer<ValveData, Object> partNumberConsumer = (valveData, sku) -> {
-        valveData.partNumber = (String)sku;
+    public static final BiConsumer<ValveData, Object> partNumberConsumer = (valveData, partNumber) -> {
+        valveData.partNumber = (String)partNumber;
     };
 
-    public static final BiConsumer<ValveData, Object> pressureConsumer = (valveData, pp) -> {
-        valveData.pressure = (int)((double) pp);
+    public static final BiConsumer<ValveData, Object> pressureConsumer = (valveData, pressure) -> {
+        valveData.pressure = (int)((double) pressure);
     };
 
-    public static final BiConsumer<ValveData, Object> valveSerialIdConsumer = (valveData, sn) -> {
-        valveData.valveSerialId = (int)sn;
+    public static final BiConsumer<ValveData, Object> valveSerialIdConsumer = (valveData, valveSerialId) -> {
+        valveData.valveSerialId = (int)valveSerialId;
     };
 
-    public static final BiConsumer<ValveData, Object> leakFaultConsumer = (valveData, ld) ->  {
-        // "N", "P", "C"
-        switch ((String)ld)
-        {
-            case "N":
-                valveData.leakFault = false;
-                break;
-            case "P":
-                valveData.leakFault = true;
-                break;
-            case "C":
-                valveData.leakFault = true;
-                break;
-        }
-
-
+    public static final BiConsumer<ValveData, Object> leakFaultConsumer = (valveData, leakFault) ->  {
+        valveData.leakFault = leakFaultEnum.get((String)leakFault);
     };
 
     // TODO: inject setValve
@@ -83,14 +76,14 @@ public class MessageScheme {
 
     Nexmatix::ValveData {
         public int manifoldId;                   // nil
-        public int stationId;                    // "st"  -> stationIdConsumer
+        public int stationId;                    // "st" -> stationIdConsumer
         public int valveSerialId;                // nil
-        public String partNumber;                // "sku" -> partNumberConsumer
+        public String partNumber;                // "pn" -> partNumberConsumer
         public boolean leakFault;                // "ld" -> leakFaultConsumer
-        public PresureFault pressureFault;       // "pf"  -> pressureFaultConsumer
+        public PresureFault pressureFault;       // "pf" -> pressureFaultConsumer
         public boolean valveFault;               // nil
-        public int cycles;                       // "cc"  -> cyclesConsumer
-        public int pressure;                     // "pp"  -> pressureConsumer
+        public int cycles;                       // "cc" -> cyclesConsumer
+        public int pressure;                     // "pp" -> pressureConsumer
         public int durationLast12;               // nil
         public int durationLast14;               // nil
         public int equalizationAveragePressure;  // nil
