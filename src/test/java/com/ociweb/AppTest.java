@@ -3,6 +3,7 @@ package com.ociweb;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -18,22 +19,17 @@ public class AppTest {
 	 @Test
 	    public void testApp()
 	    {
-		    FogRuntime runtime = FogRuntime.test(new NexmatixValve());	    	
-	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
-	    	TestHardware hardware = (TestHardware)runtime.getHardware();
+		    FogRuntime runtime = FogRuntime.test(new NexmatixValve());
+			final StageScheduler scheduler = runtime.getScheduler();
+			//TestHardware hardware = (TestHardware)runtime.getHardware();
 	    
 	    	scheduler.startup();
 	    	
 	    	int iterations = 10;
 			while (--iterations >= 0) {
-				    		
-					scheduler.run();
-					
-					//test application here
-					
+				//scheduler.run();
+				//test application here
 			}
-			
 			scheduler.shutdown();
-			
 	    }
 }
