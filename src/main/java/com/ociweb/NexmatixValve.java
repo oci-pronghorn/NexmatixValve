@@ -109,7 +109,7 @@ public class NexmatixValve implements FogApp
     @Override
     public void declareConnections(Hardware builder) {
         builder.useSerial(Baud.B_____9600); //optional device can be set as the second argument
-        builder.setTimerPulseRate(1000);
+        builder.setTimerPulseRate(100);
 
         manifoldNumber = Integer.parseInt(builder.getArgumentValue("--manifold", "-m", "1"));
 
