@@ -12,7 +12,7 @@ import static com.ociweb.schema.FieldType.*;
 public class MessageScheme {
     public static final int messageSize = 512;
     public static final int jsonMessageSize = 16384;
-    public static final int stationCount = 10;
+    public static final int stationCount = 6;
     public static final int parseIdLimit = Math.min(11, 11);
 
     private static Map<String, PresureFault> pressureFaultEnum = null;
