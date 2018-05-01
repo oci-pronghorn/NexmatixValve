@@ -2,9 +2,10 @@ package com.ociweb.behaviors;
 
 import com.ociweb.gl.api.GreenReader;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.PubSubService;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
 import com.ociweb.schema.MsgField;
@@ -18,7 +19,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static com.ociweb.schema.MessageScheme.*;
 
 public class UARTMessageToJsonBehavior implements PubSubListener {
-    private final FogCommandChannel cmd;
+    private final PubSubService service;
     private final boolean isStatus;
     private final int manifoldNumber;
     private final String publishTopic;
@@ -30,9 +31,9 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
     private Map<Integer, StringBuilder> stations = new HashMap<>();
 
     public UARTMessageToJsonBehavior(FogRuntime runtime, int manifoldNumber, String publishTopic, boolean isStatus, int batchCountLimit) {
-        this.cmd = runtime.newCommandChannel();
+        FogCommandChannel channel = runtime.newCommandChannel();
+        this.service = channel.newPubSubService(64, jsonMessageSize);
         this.isStatus = isStatus;
-        this.cmd.ensureDynamicMessaging(64, jsonMessageSize);
         this.manifoldNumber = manifoldNumber;
         this.publishTopic = publishTopic;
         this.batchCountLimit = batchCountLimit;
@@ -40,7 +41,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
     }
 
     @Override
-    public boolean message(CharSequence charSequence, BlobReader messageReader) {
+    public boolean message(CharSequence charSequence, ChannelReader messageReader) {
         NumberFormat formatter = new DecimalFormat("#0.0000");
         final long timeStamp = messageReader.readLong();
         //StringBuilder a = new StringBuilder();
@@ -128,7 +129,7 @@ public class UARTMessageToJsonBehavior implements PubSubListener {
             stations.clear();
             batchCount = ThreadLocalRandom.current().nextInt(1, batchCountLimit + 1);
             System.out.println(String.format("C.%s) %s", publishTopic, body));
-            cmd.publishTopic(publishTopic, writer -> writer.writeUTF(body));
+            service.publishTopic(publishTopic, writer -> writer.writeUTF(body));
         }
         return true;
     }

@@ -1,15 +1,17 @@
 package com.ociweb.behaviors;
 
+import com.ociweb.gl.api.PubSubService;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.SerialListener;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
+import static com.ociweb.schema.MessageScheme.jsonMessageSize;
 import static com.ociweb.schema.MessageScheme.messageSize;
 
 public class UARTMessageWindowBehavior implements SerialListener {
+    private final PubSubService service;
     private final String publishTopic;
-    private final FogCommandChannel channel;
     private final byte[] buffer;
     private long timeStamp = -1;
 
@@ -23,12 +25,13 @@ public class UARTMessageWindowBehavior implements SerialListener {
         this.publishTopic = publishTopic;
         // Make certain we can fit at least one complete message
         int bufferSize = inTheKeyOf2(messageSize * 2);
-        this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING, bufferSize);
+        FogCommandChannel channel = runtime.newCommandChannel();
+        this.service = channel.newPubSubService(DYNAMIC_MESSAGING, bufferSize);
         this.buffer = new byte[bufferSize];
     }
 
     @Override
-    public int message(BlobReader serialReader) {
+    public int message(ChannelReader serialReader) {
         // Read what we can
         final int len = serialReader.read(buffer);
         // Find beginning of message
@@ -64,7 +67,7 @@ public class UARTMessageWindowBehavior implements SerialListener {
         final int finalEnd = end - 1;
         final short messageLen = (short)(finalEnd - finalBegin + 1);
         if (messageLen > 0) {
-            channel.publishTopic(publishTopic, pubSubWriter -> {
+            service.publishTopic(publishTopic, pubSubWriter -> {
                 pubSubWriter.writeLong(timeStamp);
                 pubSubWriter.writeShort(messageLen);
                 System.out.println(String.format("B) %d:'%s'", messageLen, new String(buffer, finalBegin, messageLen)));

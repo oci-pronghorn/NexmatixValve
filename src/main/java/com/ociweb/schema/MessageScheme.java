@@ -1,5 +1,6 @@
 package com.ociweb.schema;
 import com.ociweb.gl.api.GreenTokenMap;
+import com.ociweb.iot.maker.Hardware;
 
 import static com.ociweb.schema.FieldType.*;
 
@@ -8,6 +9,23 @@ public class MessageScheme {
     public static final int jsonMessageSize = 16384;
     public static final int stationCount = 10;
     public static final int parseIdLimit = Math.min(11, 11);
+
+    private static String[][] publishTopics;
+
+    public static void declareConnections(Hardware builder, String publishTopic) {
+        // For every station and published field
+        for (int stationId = 0; stationId < MessageScheme.stationCount; stationId++) {
+            // Skip Station Id at parseId 0
+            for (int parseId = 0; parseId < MessageScheme.parseIdLimit; parseId++) {
+                publishTopics[stationId][parseId] = String.format("%s/%d/%d", publishTopic, stationId, parseId);
+                builder.definePrivateTopic("publishTopics[stationId][parseId]", "UART", "VALUE");
+            }
+        }
+    }
+
+    public static String publishTopic(int stationId, int parsedId) {
+        return publishTopics[stationId][parsedId];
+    }
 
     public static final MsgField[] messages = new MsgField[] {
             new MsgField("st", integer,"station_num", true, true),
@@ -31,7 +49,35 @@ public class MessageScheme {
         return map;
     }
 
+    public static final String[] topics = new String[] {
+            "StationId",
+            "SerialNumber",
+            "ProductNumber",
+            "CycleCountLimnit",
+            "CycleCount",
+            "PressurePoint",
+            "PressureFault",
+            "LeakDetection",
+            "InputState",
+            "FabricationDate",
+            "ShipmentDate",
+    };
+
     public static final String manifoldSerialJsonKey = "manifold_sn";
     public static final String timestampJsonKey = "timestamp";
     public static final String stationsJsonKey = "stations";
+
+    public static final FieldType[] types = new FieldType[] {
+            integer,
+            integer,
+            string,
+            integer,
+            integer,
+            floatingPoint,
+            int64,
+            int64,
+            string,
+            string,
+            string,
+    };
 }

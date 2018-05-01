@@ -5,7 +5,6 @@ import com.google.api.core.ApiFutures;
 import com.ociweb.gl.api.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.pipe.BlobReader;
 
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.protobuf.ByteString;
@@ -16,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.pubsub.v1.TopicName;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 import static com.ociweb.schema.MessageScheme.jsonMessageSize;
 
@@ -39,7 +39,7 @@ protoc --version
  */
 
 public class GooglePubSubBehavior implements PubSubListener, StartupListener, ShutdownListener {
-    private final FogCommandChannel cmd;
+    private final PubSubService service;
     private final String publishTopic;
     private final int interval;
     private final String project;
@@ -49,15 +49,15 @@ public class GooglePubSubBehavior implements PubSubListener, StartupListener, Sh
     private final boolean checkFuture = false;
 
     public GooglePubSubBehavior(String project, FogRuntime runtime, String publishTopic, int interval) {
-        this.cmd = runtime.newCommandChannel();
+        FogCommandChannel channel = runtime.newCommandChannel();
+        this.service = channel.newPubSubService(64, jsonMessageSize);
         this.publishTopic = publishTopic;
         this.interval = interval;
-        this.cmd.ensureDynamicMessaging(64, jsonMessageSize);
         this.project = project;
     }
 
     @Override
-    public boolean message(CharSequence charSequence, BlobReader messageReader) {
+    public boolean message(CharSequence charSequence, ChannelReader messageReader) {
         final String json = messageReader.readUTF();
         if (counter % interval == 0) {
             long thisTime = System.currentTimeMillis();
