@@ -1,15 +1,11 @@
 package com.ociweb;
 
 import com.ociweb.behaviors.simulators.DecentMessageProducer;
-import com.ociweb.behaviors.simulators.SerialMessageProducer;
 import com.ociweb.behaviors.simulators.SerialSimulatorBehavior;
 import com.ociweb.behaviors.*;
 import com.ociweb.gl.api.MQTTBridge;
 import com.ociweb.iot.maker.*;
 import com.ociweb.schema.MessageScheme;
-
-import static com.ociweb.schema.MessageScheme.parseIdLimit;
-import static com.ociweb.schema.MessageScheme.stationCount;
 
 public class NexmatixValve implements FogApp
 {
@@ -18,10 +14,11 @@ public class NexmatixValve implements FogApp
     @Override
     public void declareConnections(Hardware builder) {
 
-        final int manifoldNumber = Integer.parseInt(builder.getArgumentValue("--manifold", "-m", "1"));
+        final int manifoldNumber = builder.getArgumentValue("--manifold", "-m", 1);
+        final String broker = builder.getArgumentValue("--broker", "-b", "localhost");
 
         this.controlBridge = builder.useMQTT(
-                "localhost",
+                broker,
                 MQTTBridge.defaultPort,
                 "nexmatix" + manifoldNumber)
                 .cleanSession(true)
@@ -31,7 +28,7 @@ public class NexmatixValve implements FogApp
         builder.setTimerPulseRate(1000);
         builder.enableTelemetry();
 
-        builder.definePrivateTopic("UART", "UART", "VALUE");
+        //builder.definePrivateTopic("UART", "UART", "VALUE");
         MessageScheme.declareConnections(builder, "VALUE");
     }
 
@@ -54,7 +51,6 @@ public class NexmatixValve implements FogApp
 
         // Register the serial simulator
         DecentMessageProducer producer = new DecentMessageProducer(manifoldNumber, false);
-        int installedCount = producer.getInstalledCount();
 
         SerialSimulatorBehavior serialSim = new SerialSimulatorBehavior(runtime, producer);
         runtime.registerListener(serialSim)
@@ -65,14 +61,6 @@ public class NexmatixValve implements FogApp
 
         // Register the serial listener that chunks the messages
         runtime.registerListener("UART", new UARTMessageWindowBehavior(runtime, "UART"));
-
-        // Register the json converter
-        //runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_STATUS", true, installedCount)).addSubscription("UART");
-        //runtime.registerListener(new UARTMessageToJsonBehavior(runtime, manifoldNumber, "JSON_CONFIG", false, installedCount)).addSubscription("UART");
-
-        // Register Google Pub Sub
-        //runtime.registerListener(new GooglePubSubBehavior(project, runtime, "manifold-state", 1)).addSubscription("JSON_STATUS");
-        //runtime.registerListener(new GooglePubSubBehavior(project, runtime, "manifold-configuration", 60)).addSubscription("JSON_CONFIG");
 
         // Register the listener that publishes per field in the message
         final FieldPublisherBehavior fields = new FieldPublisherBehavior(runtime);

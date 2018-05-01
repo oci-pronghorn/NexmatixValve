@@ -29,8 +29,7 @@ class DecentMessageState implements java.io.Serializable{
 
     DecentMessageState() {
         installedStationIds = new ArrayList<>();
-        final int maxStations = stationCount;
-        for (int i = 0; i < maxStations; i++) {
+        for (int i = 0; i < stationCount; i++) {
             boolean isInstalled = ThreadLocalRandom.current().nextInt(0, 2) == 1;
             if (isInstalled) {
                 installedStationIds.add(i);
@@ -63,7 +62,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
     private final boolean simulateFaults;
     private DecentMessageState s;
 
-    public static <T> int contains(final T[] array, final T v) {
+    private static <T> int contains(final T[] array, final T v) {
         int i = 0;
         if (v == null) {
             for (final T e : array) {
@@ -102,9 +101,9 @@ public class DecentMessageProducer implements SerialMessageProducer {
         this.s = state;
     }
 
-    public int getInstalledCount() {
-        return s.installedStationIds.size();
-    }
+    //public int getInstalledCount() {
+    //    return s.installedStationIds.size();
+    //}
 
     private void write() {
         try {

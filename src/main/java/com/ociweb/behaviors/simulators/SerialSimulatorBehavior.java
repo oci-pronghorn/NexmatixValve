@@ -7,8 +7,6 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.SerialService;
 import com.ociweb.pronghorn.pipe.ChannelReader;
 
-import java.util.Scanner;
-
 import static com.ociweb.iot.maker.FogCommandChannel.SERIAL_WRITER;
 
 public class SerialSimulatorBehavior implements TimeListener, PubSubMethodListener {

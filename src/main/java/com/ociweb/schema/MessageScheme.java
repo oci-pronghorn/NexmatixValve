@@ -10,7 +10,7 @@ public class MessageScheme {
     public static final int stationCount = 10;
     public static final int parseIdLimit = Math.min(11, 11);
 
-    private static String[][] publishTopics;
+    private static String[][] publishTopics = new String[MessageScheme.stationCount][MessageScheme.parseIdLimit];
 
     public static void declareConnections(Hardware builder, String publishTopic) {
         // For every station and published field
@@ -18,7 +18,7 @@ public class MessageScheme {
             // Skip Station Id at parseId 0
             for (int parseId = 0; parseId < MessageScheme.parseIdLimit; parseId++) {
                 publishTopics[stationId][parseId] = String.format("%s/%d/%d", publishTopic, stationId, parseId);
-                builder.definePrivateTopic("publishTopics[stationId][parseId]", "UART", "VALUE");
+                //builder.definePrivateTopic(publishTopics[stationId][parseId], "UART", "VALUE");
             }
         }
     }
