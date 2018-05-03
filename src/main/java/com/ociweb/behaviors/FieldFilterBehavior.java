@@ -69,7 +69,7 @@ public class FieldFilterBehavior implements PubSubListener {
         }
         if (publish) {
             service.publishTopic(publishTopic, pubSubWriter -> {
-                pubSubWriter.writeLong(timeStamp);
+                //pubSubWriter.writeLong(timeStamp);
                 switch (fieldType) {
                     case integer:
                         pubSubWriter.writeInt(intCache);
