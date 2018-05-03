@@ -54,8 +54,6 @@ public class DecentMessageProducer implements SerialMessageProducer {
     private final static String[] leakDetectedEnum = new String[] { "N", "P", "C" };
     private final static String[] sizeEnum = new String[] { "SM" };
     private final static String[] colorEnum = new String[] { "BLU" };
-    private final static double minPsi = 0.0;
-    private final static double maxPsi = 120.0;
 
     private final int manifoldNumber;
     private final boolean simulateFaults;
@@ -251,8 +249,9 @@ public class DecentMessageProducer implements SerialMessageProducer {
                 double v = time % (Math.PI * 2.0);
                 double s = Math.sin(v);
                 double c = (s + 1.0) * 0.5;
-                double r = minPsi + ((maxPsi - minPsi) * c);
-                return Double.toString(r);
+                double r = MessageScheme.minPsi + ((MessageScheme.maxPsi - MessageScheme.minPsi) * c);
+                double t = Math.floor(r * 1000) / 1000;
+                return Double.toString(t);
             }
             case "fd": { // Fabrication Date
                 Long date = 0L;

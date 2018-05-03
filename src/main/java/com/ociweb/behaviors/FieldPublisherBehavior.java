@@ -57,31 +57,32 @@ public class FieldPublisherBehavior implements PubSubListener {
 
     private boolean publishSingleValue(long timeStamp, int stationId, int parsedId) {
         final FieldType fieldType = MessageScheme.messages[parsedId].type;
-        final String topic = MessageScheme.publishTopic(stationId, parsedId);
+        final String fieldName = MessageScheme.messages[parsedId].mqttKey;
+        final String topic = MessageScheme.internalPublishTopic(stationId, parsedId);
         return service.publishTopic(topic, pubSubWriter -> {
             pubSubWriter.writeLong(timeStamp);
             switch (fieldType) {
                 case integer: {
                     int value = (int)parser.extractedLong(0);
-                    System.out.println(String.format("C) Publishing %s: %s) %d", fieldType.name(), topic, value));
+                    System.out.println(String.format("C) %s %s:%s %d", topic, fieldName, fieldType.name(), value));
                     pubSubWriter.writeInt(value);
                     break;
                 }
                 case int64: {
                     long value = parser.extractedLong(0);
-                    System.out.println(String.format("C) Publishing %s: %s) %d", fieldType.name(), topic, value));
+                    System.out.println(String.format("C) %s %s:%s %d", topic, fieldName, fieldType.name(), value));
                     pubSubWriter.writeLong(value);
                     break;
                 }
                 case string: {
                     String value = parser.extractedString(0);
-                    System.out.println(String.format("C) Publishing %s: %s) '%s'", fieldType.name(), topic, value));
+                    System.out.println(String.format("C) %s %s:%s %s", topic, fieldName, fieldType.name(), value));
                     pubSubWriter.writeUTF(value);
                     break;
                 }
                 case floatingPoint: {
                     double value = (double) parser.extractedLong(0);
-                    System.out.println(String.format("C) Publishing %s: %s) %f", fieldType.name(), topic, value));
+                    System.out.println(String.format("C) %s %s:%s %f", topic, fieldName, fieldType.name(), value));
                     pubSubWriter.writeDouble(value);
                     break;
                 }

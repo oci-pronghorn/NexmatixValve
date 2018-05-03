@@ -18,11 +18,11 @@ public class FieldFilterBehavior implements PubSubListener {
     private String stringCache = "";
     private double floatingPointCache = Double.MAX_VALUE;
 
-    public FieldFilterBehavior(FogRuntime runtime, String publishTopic, int stationId, int parseId) {
+    public FieldFilterBehavior(FogRuntime runtime, String filterFieldTopic, FieldType fieldType) {
         FogCommandChannel channel = runtime.newCommandChannel();
         this.service = channel.newPubSubService();
-        this.fieldType = MessageScheme.messages[parseId].type;
-        this.publishTopic = String.format("%s/%d/%d", publishTopic, stationId, parseId);
+        this.fieldType = fieldType;
+        this.publishTopic = filterFieldTopic;
     }
 
     @Override
@@ -33,37 +33,37 @@ public class FieldFilterBehavior implements PubSubListener {
             case integer: {
                 int newValue = messageReader.readInt();
                 if (newValue != intCache) {
-                    intCache = newValue;
                     publish = true;
+                    System.out.println(String.format("D) %s:%s %d != %d", publishTopic, fieldType.name(), intCache, newValue));
+                    intCache = newValue;
                 }
-                System.out.println(String.format("D) Filtered %s %b: %s: %d -> %d", fieldType.name(), !publish, this.publishTopic, intCache, newValue));
                 break;
             }
             case int64: {
                 long newValue = messageReader.readLong();
-                if (newValue != intCache) {
-                    longCache = newValue;
+                if (newValue != longCache) {
                     publish = true;
+                    System.out.println(String.format("D) %s:%s %d != %d", publishTopic, fieldType.name(), longCache, newValue));
+                    longCache = newValue;
                 }
-                System.out.println(String.format("D) Filtered %s %b: %s: %d -> %d", fieldType.name(), !publish, this.publishTopic, intCache, newValue));
                 break;
             }
             case string: {
                 String newValue = messageReader.readUTF();
                 if (!newValue.equals(stringCache)) {
-                    stringCache = newValue;
                     publish = true;
+                    System.out.println(String.format("D) %s:%s '%s' != '%s'", publishTopic, fieldType.name(), stringCache, newValue));
+                    stringCache = newValue;
                 }
-                System.out.println(String.format("D) Filtered %s %b: %s: '%s' -> '%s'", fieldType.name(), !publish, this.publishTopic, stringCache, newValue));
                 break;
             }
             case floatingPoint: {
                 double newValue = messageReader.readDouble();
                 if (newValue != floatingPointCache) {
-                    floatingPointCache = newValue;
                     publish = true;
+                    System.out.println(String.format("D) %s:%s %f != %f", publishTopic, fieldType.name(), floatingPointCache, newValue));
+                    floatingPointCache = newValue;
                 }
-                System.out.println(String.format("D) Filtered %s %b: %s: '%s' -> '%f'", fieldType.name(), !publish, this.publishTopic, stringCache, newValue));
                 break;
             }
         }

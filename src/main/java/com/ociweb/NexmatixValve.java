@@ -9,12 +9,13 @@ import com.ociweb.schema.MessageScheme;
 
 public class NexmatixValve implements FogApp  {
     private MQTTBridge controlBridge;
+    private int manifoldNumber;
 
     @Override
     public void declareConnections(Hardware builder) {
 
         // Read command line args
-        final int manifoldNumber = builder.getArgumentValue("--manifold", "-m", 1);
+        manifoldNumber = builder.getArgumentValue("--manifold", "-m", 1);
         final String broker = builder.getArgumentValue("--broker", "-b", "localhost");
         final long rateInMS = builder.getArgumentValue("--rate", "-r", 1000);
 
@@ -36,16 +37,13 @@ public class NexmatixValve implements FogApp  {
 
         // Setup private topics
         //builder.definePrivateTopic("UART", "UART", "VALUE");
-        MessageScheme.declareTopics("VALUE", s -> {
+        MessageScheme.declareTopics(manifoldNumber, s -> {
             //builder.definePrivateTopic(s, "UART", "VALUE");
         });
     }
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        final int manifoldNumber = Integer.parseInt(runtime.getArgumentValue("--manifold", "-m", "1"));
-        final String manifoldTopic = "Manifold" + manifoldNumber;
-
         final String prefix = "m" + manifoldNumber + "/";
         final String fr = "fault/reset";
         final String fp = "fault/pressure";
@@ -67,24 +65,27 @@ public class NexmatixValve implements FogApp  {
                 .addSubscription(fc, serialSim::wantCycleFault);
 
         // Register the serial listener that chunks the messages
-        UARTMessageWindowBehavior UART = new UARTMessageWindowBehavior(runtime, "UART");
-        runtime.registerListener("UART", UART);
+        UARTMessageWindowBehavior UART = new UARTMessageWindowBehavior(runtime, MessageScheme.UARTTopic);
+        runtime.registerListener(MessageScheme.UARTTopic, UART);
 
         // Register the listener that publishes per field in the message
         final FieldPublisherBehavior fields = new FieldPublisherBehavior(runtime);
-        runtime.registerListener("VALUE", fields).addSubscription("UART");
+        runtime.registerListener(MessageScheme.FieldTopic, fields).addSubscription(MessageScheme.UARTTopic);
 
         // For every station and published field
         for (int stationId = 0; stationId < MessageScheme.stationCount; stationId++) {
             // Skip Station Id at parseId 0
             for (int parseId = 1; parseId < MessageScheme.parseIdLimit; parseId++) {
                 // Create a filter for that field
-                final FieldFilterBehavior filter = new FieldFilterBehavior(runtime, "FILTER", stationId, parseId);
-                final String internalFieldTopic = MessageScheme.publishTopic(stationId, parseId);
-                runtime.registerListener(filter).addSubscription(internalFieldTopic);
+                final String internalFieldTopic = MessageScheme.internalPublishTopic(stationId, parseId);
+                final String filterFieldTopic = MessageScheme.filterPublishTopic(stationId, parseId);
+                final String externallFieldTopic =  MessageScheme.externalPublishTopic(stationId, parseId);
+
+                final FieldFilterBehavior filter = new FieldFilterBehavior(runtime, filterFieldTopic, MessageScheme.messages[parseId].type);
+                final String name = String.format("%d.%s", stationId, MessageScheme.messages[parseId].mqttKey);
+                runtime.registerListener(name, filter).addSubscription(internalFieldTopic);
                 // Broadcast the value to MQTT transforming the topic
-                final String externalTopic = String.format("%s/%d/%s", manifoldTopic, stationId, MessageScheme.topics[parseId]);
-                runtime.bridgeTransmission(filter.publishTopic, externalTopic, controlBridge); //optional 2 topics, optional transform lambda
+                runtime.bridgeTransmission(filter.publishTopic, externallFieldTopic, controlBridge); //optional 2 topics, optional transform lambda
             }
         }
     }
