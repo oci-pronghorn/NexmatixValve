@@ -2,6 +2,8 @@ package com.ociweb.schema;
 import com.ociweb.gl.api.GreenTokenMap;
 import com.ociweb.iot.maker.Hardware;
 
+import java.util.function.Consumer;
+
 import static com.ociweb.schema.FieldType.*;
 
 public class MessageScheme {
@@ -12,13 +14,13 @@ public class MessageScheme {
 
     private static String[][] publishTopics = new String[MessageScheme.stationCount][MessageScheme.parseIdLimit];
 
-    public static void declareConnections(Hardware builder, String publishTopic) {
+    public static void declareTopics(String publishTopic, Consumer<String> consume) {
         // For every station and published field
         for (int stationId = 0; stationId < MessageScheme.stationCount; stationId++) {
             // Skip Station Id at parseId 0
             for (int parseId = 0; parseId < MessageScheme.parseIdLimit; parseId++) {
                 publishTopics[stationId][parseId] = String.format("%s/%d/%d", publishTopic, stationId, parseId);
-                //builder.definePrivateTopic(publishTopics[stationId][parseId], "UART", "VALUE");
+                consume.accept(publishTopics[stationId][parseId]);
             }
         }
     }

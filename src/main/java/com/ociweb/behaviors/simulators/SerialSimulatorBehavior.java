@@ -7,15 +7,13 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.SerialService;
 import com.ociweb.pronghorn.pipe.ChannelReader;
 
-import static com.ociweb.iot.maker.FogCommandChannel.SERIAL_WRITER;
-
 public class SerialSimulatorBehavior implements TimeListener, PubSubMethodListener {
     private final SerialService serialService;
     private final SerialMessageProducer producer;
 
     public SerialSimulatorBehavior(FogRuntime runtime, SerialMessageProducer producer) {
         this.producer = producer;
-        FogCommandChannel channel = runtime.newCommandChannel(SERIAL_WRITER);
+        FogCommandChannel channel = runtime.newCommandChannel();
         serialService = channel.newSerialService();
     }
 
@@ -56,7 +54,7 @@ public class SerialSimulatorBehavior implements TimeListener, PubSubMethodListen
         if (i >= limit) return;
         serialService.publishSerial(serialWriter -> {
             String msg = producer.next(l, i);
-            System.out.println(String.format("A.%d) %d:'%s'", i, msg.length(), msg));
+            System.out.println(String.format("A) Simulated [%d.%d]: '%s'", i, msg.length(), msg));
             serialWriter.writeUTF8Text(msg);
         });
     }

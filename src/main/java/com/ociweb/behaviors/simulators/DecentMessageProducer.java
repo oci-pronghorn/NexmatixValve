@@ -49,7 +49,6 @@ class DecentMessageState implements java.io.Serializable{
 }
 
 public class DecentMessageProducer implements SerialMessageProducer {
-
     private final static String[] inputEnum = new String[] { "N", "A", "B" };
     private final static String[] pressureFaultEnum = new String[] { "N", "H", "L" };
     private final static String[] leakDetectedEnum = new String[] { "N", "P", "C" };

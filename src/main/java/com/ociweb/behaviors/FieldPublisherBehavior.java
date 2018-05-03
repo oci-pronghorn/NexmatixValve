@@ -6,7 +6,6 @@ import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.util.TrieParserReader;
 
 public class FieldPublisherBehavior implements PubSubListener {
     private final PubSubService service;
@@ -20,11 +19,6 @@ public class FieldPublisherBehavior implements PubSubListener {
     @Override
     public boolean message(CharSequence charSequence, ChannelReader messageReader) {
         final long timeStamp = messageReader.readLong();
-        //StringBuilder a = new StringBuilder();
-        //messageReader.readUTF(a);
-        //System.out.println(String.format("C) Recieved: %d:'%s'", a.length(), a.toString()));
-        //final short messageLength = messageReader.readShort();
-        //System.out.println("C) Length: " + messageLength);
         int stationId = -1;
         parser.beginRead(messageReader);
         while (parser.hasMore()) {
@@ -32,18 +26,15 @@ public class FieldPublisherBehavior implements PubSubListener {
             if (parsedId == -1) {
                 parser.skipByte();
             }
-            // Why return long only to down cast it to int for capture methods?
-            //System.out.println("C) Parsed Field: " + parsedId);
             if (parsedId == 0) {
                 stationId = (int)parser.extractedLong(0);
-                //System.out.println("C) Station Id: " + stationId);
             }
             else {
                 if (stationId != -1) {
                     publishSingleValue(timeStamp, stationId, parsedId);
                 }
                 else {
-                    System.out.println("C) Value before Station dropped");
+                    System.out.println("C) Dropped: Value before Station");
                 }
             }
         }
@@ -52,7 +43,7 @@ public class FieldPublisherBehavior implements PubSubListener {
 
     private void publishSingleValue(long timeStamp, int stationId, int parsedId) {
         final FieldType fieldType = MessageScheme.types[parsedId];
-        final String topic = MessageScheme.publishTopic(stationId, (int)parsedId);
+        final String topic = MessageScheme.publishTopic(stationId, parsedId);
         service.publishTopic(topic, pubSubWriter -> {
             pubSubWriter.writeLong(timeStamp);
             switch (fieldType) {
@@ -69,8 +60,8 @@ public class FieldPublisherBehavior implements PubSubListener {
                     break;
                 }
                 case string: {
-                    parser.copyExtractedUTF8ToAppendable(0, pubSubWriter);
                     System.out.println(String.format("C) Publishing: %s) '%s'", topic, "some string"));
+                    parser.copyExtractedUTF8ToAppendable(0, pubSubWriter);
                     break;
                 }
                 case floatingPoint: {

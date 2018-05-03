@@ -70,7 +70,7 @@ public class UARTMessageWindowBehavior implements SerialListener {
             service.publishTopic(publishTopic, pubSubWriter -> {
                 pubSubWriter.writeLong(timeStamp);
                 pubSubWriter.writeShort(messageLen);
-                System.out.println(String.format("B) %d:'%s'", messageLen, new String(buffer, finalBegin, messageLen)));
+                System.out.println(String.format("B) Windowed [%d.%d]:'%s'", timeStamp, messageLen, new String(buffer, finalBegin, messageLen)));
                 pubSubWriter.write(buffer, finalBegin, messageLen);
             });
         }
