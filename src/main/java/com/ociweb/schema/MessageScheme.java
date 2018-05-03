@@ -17,6 +17,7 @@ public class MessageScheme {
     public final static String UARTTopic = "UART";
     public final static String FieldTopic = "Field";
     public final static String FilterTopic = "Filter";
+    public final static String TimestampKey = "Timestamp";
 
     private static String[][] internalPublishTopics = new String[MessageScheme.stationCount][MessageScheme.parseIdLimit];
     private static String[][] filterPublishTopics = new String[MessageScheme.stationCount][MessageScheme.parseIdLimit];
@@ -35,6 +36,7 @@ public class MessageScheme {
             new MsgField("in", string, "InputState"),
             new MsgField("pn", string,"ProductNumber"),
     };
+    public static int StructureId;
 
     public static void declareTopics(int manifoldNumber, Consumer<String> consume) {
         // For every station and published field

@@ -8,8 +8,6 @@ import com.ociweb.schema.MessageScheme;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 
-import static com.ociweb.schema.MessageScheme.TimestampField;
-
 public class FieldPublisherBehavior implements PubSubListener {
     private final PubSubService service;
     private final GreenReader parser = MessageScheme.buildParser().newReader();
@@ -21,12 +19,10 @@ public class FieldPublisherBehavior implements PubSubListener {
 
     @Override
     public boolean message(CharSequence charSequence, ChannelReader messageReader) {
-        StructuredReader structured = messageReader.structured();
         //return debugMessage(messageReader);
         final long timeStamp = messageReader.readLong();
         final short messageLength = messageReader.readShort();
         if (messageLength > 0) {
-
             System.out.println(String.format("C) Received on %d", timeStamp));
 
             int stationId = -1;

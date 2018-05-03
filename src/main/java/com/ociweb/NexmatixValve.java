@@ -5,7 +5,11 @@ import com.ociweb.behaviors.simulators.SerialSimulatorBehavior;
 import com.ociweb.behaviors.*;
 import com.ociweb.gl.api.MQTTBridge;
 import com.ociweb.iot.maker.*;
+import com.ociweb.pronghorn.struct.StructType;
+import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
+
+import static com.ociweb.schema.MessageScheme.TimestampKey;
 
 public class NexmatixValve implements FogApp  {
     private MQTTBridge controlBridge;
@@ -34,6 +38,14 @@ public class NexmatixValve implements FogApp  {
         builder.setTimerPulseRate(rateInMS);
 
         builder.enableTelemetry();
+
+        MessageScheme.StructureId = builder.defineStruct()
+                .addField(TimestampKey, StructType.Long, TimestampKey)
+                .addField(FieldType.int64, StructType.Long)
+                .addField(FieldType.integer, StructType.Integer)
+                .addField(FieldType.string, StructType.Text)
+                .addField(FieldType.floatingPoint, StructType.Rational)
+                .register();
 
         // Setup private topics
         //builder.definePrivateTopic("UART", "UART", "VALUE");
