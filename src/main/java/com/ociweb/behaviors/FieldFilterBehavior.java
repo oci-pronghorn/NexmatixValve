@@ -29,14 +29,14 @@ public class FieldFilterBehavior implements PubSubListener {
 
     @Override
     public boolean message(CharSequence charSequence, ChannelReader messageReader) {
-        final long timeStamp = messageReader.readLong();
+        final long timeStamp = messageReader.readPackedLong();
         boolean publish = false;
         switch (fieldType) {
             case integer: {
                 int newValue = messageReader.readInt();
                 if (newValue != intCache) {
                     publish = true;
-                    System.out.println(String.format("D) %s %s:%s %d != %d", publishTopic, fieldName, fieldType.name(), intCache, newValue));
+                    System.out.println(String.format("D) %s %s:%s (%d) %d != %d", publishTopic, fieldName, fieldType.name(), timeStamp, intCache, newValue));
                     intCache = newValue;
                 }
                 break;
@@ -45,16 +45,19 @@ public class FieldFilterBehavior implements PubSubListener {
                 long newValue = messageReader.readLong();
                 if (newValue != longCache) {
                     publish = true;
-                    System.out.println(String.format("D) %s %s:%s %d != %d", publishTopic, fieldName, fieldType.name(), longCache, newValue));
+                    System.out.println(String.format("D) %s %s:%s (%d) %d != %d", publishTopic, fieldName, fieldType.name(), timeStamp, longCache, newValue));
                     longCache = newValue;
                 }
                 break;
             }
             case string: {
                 String newValue = messageReader.readUTF();
+                if (newValue.isEmpty()) {
+                    break;
+                }
                 if (!newValue.equals(stringCache)) {
                     publish = true;
-                    System.out.println(String.format("D) %s %s:%s '%s' != '%s'", publishTopic, fieldName, fieldType.name(), stringCache, newValue));
+                    System.out.println(String.format("D) %s %s:%s (%d) '%s' != '%s'", publishTopic, fieldName, fieldType.name(), timeStamp, stringCache, newValue));
                     stringCache = newValue;
                 }
                 break;
@@ -63,7 +66,7 @@ public class FieldFilterBehavior implements PubSubListener {
                 double newValue = messageReader.readDouble();
                 if (newValue != floatingPointCache) {
                     publish = true;
-                    System.out.println(String.format("D) %s %s:%s %f != %f", publishTopic, fieldName, fieldType.name(), floatingPointCache, newValue));
+                    System.out.println(String.format("D) %s %s:%s (%d) %f != %f", publishTopic, fieldName, fieldType.name(), timeStamp, floatingPointCache, newValue));
                     floatingPointCache = newValue;
                 }
                 break;

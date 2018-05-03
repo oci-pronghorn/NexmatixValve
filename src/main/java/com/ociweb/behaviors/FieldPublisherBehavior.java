@@ -2,10 +2,13 @@ package com.ociweb.behaviors;
 
 import com.ociweb.gl.api.*;
 import com.ociweb.pronghorn.pipe.ChannelReader;
+import com.ociweb.pronghorn.pipe.StructuredReader;
 import com.ociweb.schema.FieldType;
 import com.ociweb.schema.MessageScheme;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
+
+import static com.ociweb.schema.MessageScheme.TimestampField;
 
 public class FieldPublisherBehavior implements PubSubListener {
     private final PubSubService service;
@@ -18,10 +21,14 @@ public class FieldPublisherBehavior implements PubSubListener {
 
     @Override
     public boolean message(CharSequence charSequence, ChannelReader messageReader) {
+        StructuredReader structured = messageReader.structured();
         //return debugMessage(messageReader);
         final long timeStamp = messageReader.readLong();
         final short messageLength = messageReader.readShort();
         if (messageLength > 0) {
+
+            System.out.println(String.format("C) Received on %d", timeStamp));
+
             int stationId = -1;
             parser.beginRead(messageReader);
             while (parser.hasMore()) {
@@ -60,7 +67,7 @@ public class FieldPublisherBehavior implements PubSubListener {
         final String fieldName = MessageScheme.messages[parsedId].mqttKey;
         final String topic = MessageScheme.internalPublishTopic(stationId, parsedId);
         return service.publishTopic(topic, pubSubWriter -> {
-            pubSubWriter.writeLong(timeStamp);
+            pubSubWriter.writePackedLong(timeStamp);
             switch (fieldType) {
                 case integer: {
                     int value = (int)parser.extractedLong(0);
