@@ -63,23 +63,25 @@ public class FieldPublisherBehavior implements PubSubListener {
             switch (fieldType) {
                 case integer: {
                     int value = (int)parser.extractedLong(0);
-                    System.out.println(String.format("C) Publishing int: %s) %d", topic, value));
+                    System.out.println(String.format("C) Publishing %s: %s) %d", fieldType.name(), topic, value));
                     pubSubWriter.writeInt(value);
                     break;
                 }
                 case int64: {
                     long value = parser.extractedLong(0);
-                    System.out.println(String.format("C) Publishing long: %s) %d", topic, value));
+                    System.out.println(String.format("C) Publishing %s: %s) %d", fieldType.name(), topic, value));
                     pubSubWriter.writeLong(value);
                     break;
                 }
                 case string: {
-                    System.out.println(String.format("C) Publishing string: %s) '%s'", topic, "dropped!!!!"));
+                    String value = parser.extractedString(0);
+                    System.out.println(String.format("C) Publishing %s: %s) '%s'", fieldType.name(), topic, value));
+                    pubSubWriter.writeUTF(value);
                     break;
                 }
                 case floatingPoint: {
                     double value = (double) parser.extractedLong(0);
-                    System.out.println(String.format("C) Publishing decimal: %s) %f", topic, value));
+                    System.out.println(String.format("C) Publishing %s: %s) %f", fieldType.name(), topic, value));
                     pubSubWriter.writeDouble(value);
                     break;
                 }
