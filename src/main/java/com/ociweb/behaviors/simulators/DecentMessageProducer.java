@@ -126,7 +126,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
             int idx = contains(pressureFaultEnum, v);
             if (idx != -1) {
                 s.pressureFaults.put(sn, idx);
-                System.out.println(String.format("\n***) Pressure Fault %d, %d %s\n", stationId + 1, sn, pressureFaultEnum[idx]));
+                System.out.println(String.format("\n***) Pressure Fault %d, %d %s\n", stationId, sn, pressureFaultEnum[idx]));
             }
         }
     }
@@ -138,7 +138,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
             int idx = contains(leakDetectedEnum, v);
             if (idx != -1) {
                 s.leakFaults.put(sn, idx);
-                System.out.println(String.format("\n***) Leak Fault %d %d %s\n", stationId + 1, sn, leakDetectedEnum[idx]));
+                System.out.println(String.format("\n***) Leak Fault %d %d %s\n", stationId, sn, leakDetectedEnum[idx]));
             }
         }
     }
@@ -150,7 +150,7 @@ public class DecentMessageProducer implements SerialMessageProducer {
             Integer cc = s.cycleCounts.get(sn);
             if (cc != null) {
                 s.cycleCountLimits.put(sn, cc + cycleCountLimitIn);
-                System.out.println(String.format("\n***) Cycle Fault %d %d %d %d\n", stationId + 1, sn, cc, cc + cycleCountLimitIn));
+                System.out.println(String.format("\n***) Cycle Fault %d %d %d %d\n", stationId, sn, cc, cc + cycleCountLimitIn));
             }
         }
     }

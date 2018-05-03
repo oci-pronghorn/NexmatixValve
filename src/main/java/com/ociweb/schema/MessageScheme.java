@@ -8,7 +8,7 @@ public class MessageScheme {
     public static final int messageSize = 512;
     public static final int jsonMessageSize = 16384;
     public static final int stationCount = 10;
-    public static final int parseIdLimit = Math.min(11, 11);
+    public static final int parseIdLimit = Math.min(10, 10);
     public final static double minPsi = 0.0;
     public final static double maxPsi = 120.0;
 

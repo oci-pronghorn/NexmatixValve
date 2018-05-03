@@ -76,7 +76,7 @@ public class FieldPublisherBehavior implements PubSubListener {
                 }
                 case string: {
                     String value = parser.extractedString(0);
-                    System.out.println(String.format("C) %s %s:%s %s", topic, fieldName, fieldType.name(), value));
+                    System.out.println(String.format("C) %s %s:%s '%s'", topic, fieldName, fieldType.name(), value));
                     pubSubWriter.writeUTF(value);
                     break;
                 }

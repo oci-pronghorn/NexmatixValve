@@ -11,18 +11,20 @@ import com.ociweb.iot.maker.FogRuntime;
 public class FieldFilterBehavior implements PubSubListener {
     private final PubSubService service;
     private final FieldType fieldType;
+    private final String fieldName;
     public final String publishTopic;
 
     private int intCache = Integer.MAX_VALUE;
     private long longCache = Long.MAX_VALUE;
-    private String stringCache = "";
+    private String stringCache = "<Unknown>";
     private double floatingPointCache = Double.MAX_VALUE;
 
-    public FieldFilterBehavior(FogRuntime runtime, String filterFieldTopic, FieldType fieldType) {
+    public FieldFilterBehavior(FogRuntime runtime, String filterFieldTopic, int parsedId) {
         FogCommandChannel channel = runtime.newCommandChannel();
         this.service = channel.newPubSubService();
-        this.fieldType = fieldType;
+        this.fieldType = MessageScheme.messages[parsedId].type;
         this.publishTopic = filterFieldTopic;
+        this.fieldName = MessageScheme.messages[parsedId].mqttKey;
     }
 
     @Override
@@ -34,7 +36,7 @@ public class FieldFilterBehavior implements PubSubListener {
                 int newValue = messageReader.readInt();
                 if (newValue != intCache) {
                     publish = true;
-                    System.out.println(String.format("D) %s:%s %d != %d", publishTopic, fieldType.name(), intCache, newValue));
+                    System.out.println(String.format("D) %s %s:%s %d != %d", publishTopic, fieldName, fieldType.name(), intCache, newValue));
                     intCache = newValue;
                 }
                 break;
@@ -43,7 +45,7 @@ public class FieldFilterBehavior implements PubSubListener {
                 long newValue = messageReader.readLong();
                 if (newValue != longCache) {
                     publish = true;
-                    System.out.println(String.format("D) %s:%s %d != %d", publishTopic, fieldType.name(), longCache, newValue));
+                    System.out.println(String.format("D) %s %s:%s %d != %d", publishTopic, fieldName, fieldType.name(), longCache, newValue));
                     longCache = newValue;
                 }
                 break;
@@ -52,7 +54,7 @@ public class FieldFilterBehavior implements PubSubListener {
                 String newValue = messageReader.readUTF();
                 if (!newValue.equals(stringCache)) {
                     publish = true;
-                    System.out.println(String.format("D) %s:%s '%s' != '%s'", publishTopic, fieldType.name(), stringCache, newValue));
+                    System.out.println(String.format("D) %s %s:%s '%s' != '%s'", publishTopic, fieldName, fieldType.name(), stringCache, newValue));
                     stringCache = newValue;
                 }
                 break;
@@ -61,7 +63,7 @@ public class FieldFilterBehavior implements PubSubListener {
                 double newValue = messageReader.readDouble();
                 if (newValue != floatingPointCache) {
                     publish = true;
-                    System.out.println(String.format("D) %s:%s %f != %f", publishTopic, fieldType.name(), floatingPointCache, newValue));
+                    System.out.println(String.format("D) %s %s:%s %f != %f", publishTopic, fieldName, fieldType.name(), floatingPointCache, newValue));
                     floatingPointCache = newValue;
                 }
                 break;
