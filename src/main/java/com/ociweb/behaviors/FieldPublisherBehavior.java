@@ -18,55 +18,68 @@ public class FieldPublisherBehavior implements PubSubListener {
 
     @Override
     public boolean message(CharSequence charSequence, ChannelReader messageReader) {
+        //return debugMessage(messageReader);
         final long timeStamp = messageReader.readLong();
-        int stationId = -1;
-        parser.beginRead(messageReader);
-        while (parser.hasMore()) {
-            int parsedId = (int)parser.readToken();
-            if (parsedId == -1) {
-                parser.skipByte();
-            }
-            if (parsedId == 0) {
-                stationId = (int)parser.extractedLong(0);
-            }
-            else {
-                if (stationId != -1) {
-                    publishSingleValue(timeStamp, stationId, parsedId);
+        final short messageLength = messageReader.readShort();
+        if (messageLength > 0) {
+            int stationId = -1;
+            parser.beginRead(messageReader);
+            while (parser.hasMore()) {
+                int parsedId = (int) parser.readToken();
+                if (parsedId == -1) {
+                    parser.skipByte();
                 }
-                else {
-                    System.out.println("C) Dropped: Value before Station");
+                if (parsedId == 0) {
+                    stationId = (int) parser.extractedLong(0);
+                } else {
+                    if (stationId != -1) {
+                        boolean published = publishSingleValue(timeStamp, stationId, parsedId);
+                        if (!published) {
+                            return false;
+                        }
+                    } else {
+                        System.out.println("C) Dropped: Value before Station");
+                    }
                 }
             }
         }
         return true;
     }
 
-    private void publishSingleValue(long timeStamp, int stationId, int parsedId) {
-        final FieldType fieldType = MessageScheme.types[parsedId];
+    private boolean debugMessage(ChannelReader messageReader) {
+        final long timeStamp = messageReader.readLong();
+        final short messageLength = messageReader.readShort();
+        byte[] buffer = new byte[1024];
+        final int actualLength = messageReader.read(buffer, 0, messageLength);
+        System.out.println(String.format("C) Received [%d.%d]:'%s'", timeStamp, actualLength, new String(buffer, 0, actualLength)));
+        return true;
+    }
+
+    private boolean publishSingleValue(long timeStamp, int stationId, int parsedId) {
+        final FieldType fieldType = MessageScheme.messages[parsedId].type;
         final String topic = MessageScheme.publishTopic(stationId, parsedId);
-        service.publishTopic(topic, pubSubWriter -> {
+        return service.publishTopic(topic, pubSubWriter -> {
             pubSubWriter.writeLong(timeStamp);
             switch (fieldType) {
                 case integer: {
                     int value = (int)parser.extractedLong(0);
-                    System.out.println(String.format("C) Publishing: %s) %d", topic, value));
+                    System.out.println(String.format("C) Publishing int: %s) %d", topic, value));
                     pubSubWriter.writeInt(value);
                     break;
                 }
                 case int64: {
                     long value = parser.extractedLong(0);
-                    System.out.println(String.format("C) Publishing: %s) %d", topic, value));
+                    System.out.println(String.format("C) Publishing long: %s) %d", topic, value));
                     pubSubWriter.writeLong(value);
                     break;
                 }
                 case string: {
-                    System.out.println(String.format("C) Publishing: %s) '%s'", topic, "some string"));
-                    parser.copyExtractedUTF8ToAppendable(0, pubSubWriter);
+                    System.out.println(String.format("C) Publishing string: %s) '%s'", topic, "dropped!!!!"));
                     break;
                 }
                 case floatingPoint: {
                     double value = (double) parser.extractedLong(0);
-                    System.out.println(String.format("C) Publishing: %s) %f", topic, value));
+                    System.out.println(String.format("C) Publishing decimal: %s) %f", topic, value));
                     pubSubWriter.writeDouble(value);
                     break;
                 }

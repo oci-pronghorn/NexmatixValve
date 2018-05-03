@@ -68,18 +68,4 @@ public class MessageScheme {
     public static final String manifoldSerialJsonKey = "manifold_sn";
     public static final String timestampJsonKey = "timestamp";
     public static final String stationsJsonKey = "stations";
-
-    public static final FieldType[] types = new FieldType[] {
-            integer,
-            integer,
-            string,
-            integer,
-            integer,
-            floatingPoint,
-            int64,
-            int64,
-            string,
-            string,
-            string,
-    };
 }

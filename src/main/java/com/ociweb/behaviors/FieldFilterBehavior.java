@@ -21,7 +21,7 @@ public class FieldFilterBehavior implements PubSubListener {
     public FieldFilterBehavior(FogRuntime runtime, String publishTopic, int stationId, int parseId) {
         FogCommandChannel channel = runtime.newCommandChannel();
         this.service = channel.newPubSubService();
-        this.fieldType = MessageScheme.types[parseId];
+        this.fieldType = MessageScheme.messages[parseId].type;
         this.publishTopic = String.format("%s/%d/%d", publishTopic, stationId, parseId);
     }
 
@@ -32,7 +32,7 @@ public class FieldFilterBehavior implements PubSubListener {
         switch (fieldType) {
             case integer: {
                 int newValue = messageReader.readInt();
-                System.out.println(String.format("D) Detected: %s: %d -> %d", this.publishTopic, intCache, newValue));
+                System.out.println(String.format("D) Detected int: %s: %d -> %d", this.publishTopic, intCache, newValue));
                 if (newValue != intCache) {
                     intCache = newValue;
                     publish = true;
@@ -41,7 +41,7 @@ public class FieldFilterBehavior implements PubSubListener {
             }
             case int64: {
                 long newValue = messageReader.readLong();
-                System.out.println(String.format("D) Detected: %s: %d -> %d", this.publishTopic, intCache, newValue));
+                System.out.println(String.format("D) Detected long: %s: %d -> %d", this.publishTopic, intCache, newValue));
                 if (newValue != intCache) {
                     longCache = newValue;
                     publish = true;
@@ -50,7 +50,7 @@ public class FieldFilterBehavior implements PubSubListener {
             }
             case string: {
                 String newValue = messageReader.readUTF();
-                System.out.println(String.format("D) Detected: %s: '%s' -> '%s'", this.publishTopic, stringCache, newValue));
+                System.out.println(String.format("D) Detected string: %s: '%s' -> '%s'", this.publishTopic, stringCache, newValue));
                 if (!newValue.equals(stringCache)) {
                     stringCache = newValue;
                     publish = true;
@@ -59,7 +59,7 @@ public class FieldFilterBehavior implements PubSubListener {
             }
             case floatingPoint: {
                 double newValue = messageReader.readDouble();
-                System.out.println(String.format("D) Detected: %s: '%s' -> '%f'", this.publishTopic, stringCache, newValue));
+                System.out.println(String.format("D) Detected decimal: %s: '%s' -> '%f'", this.publishTopic, stringCache, newValue));
                 if (newValue != floatingPointCache) {
                     floatingPointCache = newValue;
                     publish = true;
